@@ -51,7 +51,7 @@ export class Screens {
         // Draw level select instruction
         this.renderer.drawRect(200, 270, 400, 50, 'steel');
         this.renderer.drawRect(210, 280, 380, 30, 'black');
-        this.renderer.drawText('按 1 选择关卡', 400, 295, 'white', 24);
+        this.renderer.drawText('按 L 选择关卡', 400, 295, 'white', 24);
         
         // Draw instructions with steel background and black text
         this.renderer.drawRect(200, 350, 400, 180, 'steel');

@@ -208,7 +208,7 @@ function update(deltaTime: number) {
             initPlayerTank();
             gameState = GameState.Playing;
         }
-        if (inputManager.isPressed('Digit1')) {
+        if (inputManager.isPressed('KeyL')) {
             selectedLevel = 0;
             maxUnlockedLevel = Math.min(maxUnlockedLevel + 1, TOTAL_LEVELS);
             gameState = GameState.LevelSelect;
