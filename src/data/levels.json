@@ -1,35 +1,74 @@
 {
-  "version": "1.0",
   "levels": [
     {
-      "name": "经典战场",
-      "data": [
-        {"x": 3, "y": 3, "type": 3},
-        {"x": 6, "y": 3, "type": 3},
-        {"x": 9, "y": 3, "type": 3},
-        {"x": 4, "y": 5, "type": 3},
-        {"x": 8, "y": 5, "type": 3},
-        {"x": 3, "y": 7, "type": 3},
-        {"x": 6, "y": 7, "type": 3},
-        {"x": 9, "y": 7, "type": 3},
-        {"x": 4, "y": 9, "type": 3},
-        {"x": 8, "y": 9, "type": 3},
-        {"x": 1, "y": 1, "type": 5},
-        {"x": 1, "y": 2, "type": 5},
-        {"x": 2, "y": 1, "type": 5},
-        {"x": 11, "y": 1, "type": 4},
-        {"x": 11, "y": 2, "type": 4},
-        {"x": 11, "y": 5, "type": 4},
-        {"x": 5, "y": 1, "type": 8},
-        {"x": 5, "y": 2, "type": 8},
-        {"x": 6, "y": 1, "type": 8},
-        {"x": 10, "y": 3, "type": 8},
-        {"x": 10, "y": 4, "type": 8},
-        {"x": 11, "y": 3, "type": 8}
-      ],
-      "base": [{"x": 6, "y": 12}],
-      "author": "Battle City",
-      "description": "经典坦克大战地图布局"
+      "level_id": 1,
+      "level_name": "初出茅庐",
+      "difficulty": 1,
+      "map_config": {
+        "width": 13,
+        "height": 13,
+        "tile_size": 64
+      },
+      "enemy_config": {
+        "total_count": 16,
+        "max_on_screen": 3,
+        "spawn_interval": 4.0,
+        "types": {
+          "armor": 0.5,
+          "light": 0.5,
+          "medium": 0,
+          "heavy": 0
+        }
+      },
+      "player_config": {
+        "initial_lives": 3,
+        "initial_level": 0,
+        "respawn_invincible_time": 3.0
+      },
+      "item_config": {
+        "spawn_probability": 0.15,
+        "allowed_items": ["bomb", "clock", "shovel", "star", "tank", "helmet"]
+      },
+      "special_rules": ["tutorial"],
+      "clear_reward": {
+        "score_bonus": 1000,
+        "extra_life": false
+      }
+    },
+    {
+      "level_id": 2,
+      "level_name": "标准战斗",
+      "difficulty": 2,
+      "map_config": {
+        "width": 13,
+        "height": 13,
+        "tile_size": 64
+      },
+      "enemy_config": {
+        "total_count": 20,
+        "max_on_screen": 4,
+        "spawn_interval": 3.0,
+        "types": {
+          "armor": 0.2,
+          "light": 0.3,
+          "medium": 0.3,
+          "heavy": 0.2
+        }
+      },
+      "player_config": {
+        "initial_lives": 3,
+        "initial_level": 1,
+        "respawn_invincible_time": 3.0
+      },
+      "item_config": {
+        "spawn_probability": 0.12,
+        "allowed_items": ["bomb", "clock", "shovel", "star", "tank", "helmet"]
+      },
+      "special_rules": [],
+      "clear_reward": {
+        "score_bonus": 1500,
+        "extra_life": false
+      }
     }
   ]
 }
