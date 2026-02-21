@@ -4,6 +4,12 @@ export interface MapConfig {
     tile_size: number;
 }
 
+export interface TileData {
+    x: number;
+    y: number;
+    type: number;
+}
+
 export interface EnemyTypes {
     armor: number;
     light: number;
@@ -39,6 +45,7 @@ export interface LevelData {
     level_name: string;
     difficulty: number;
     map_config: MapConfig;
+    map_tiles?: TileData[];
     enemy_config: EnemyConfig;
     player_config: PlayerConfig;
     item_config: ItemConfig;
