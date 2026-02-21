@@ -1,0 +1,16 @@
+{
+  "name": "battle-city",
+  "version": "0.0.1",
+  "description": "Battle City Tank game implementation",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^12.3.0",
+    "tslib": "^2.8.1",
+    "typescript": "~5.9.3",
+    "vite": "^5.3.1"
+  }
+}
