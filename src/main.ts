@@ -50,8 +50,8 @@ const CLOCK_DURATION = 10000;
 const SHOVEL_DURATION = 20000;
 void playerCanPassWater;
 
-// Game state - start in Playing mode
-let gameState: GameState = GameState.Playing;
+// Game state - start in Menu mode
+let gameState: GameState = GameState.Menu;
 let playerTank: PlayerTank | null = null;
 let bullets: Bullet[] = [];
 (window as any).bullets = bullets;
