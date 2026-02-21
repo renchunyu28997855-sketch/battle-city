@@ -5,7 +5,7 @@ export class PlayerTank extends Tank {
     private mapSystem: MapSystem;
 
     constructor(mapSystem: MapSystem) {
-        super(6 * 32, 12 * 32);
+        super(4 * 32, 12 * 32);
         this.mapSystem = mapSystem;
     }
 

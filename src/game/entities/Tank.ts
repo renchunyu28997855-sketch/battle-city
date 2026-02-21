@@ -12,6 +12,9 @@ export class Tank {
     speed: number;
     width: number;
     height: number;
+    health: number;
+    scoreValue: number;
+    bulletLevel: number;
 
     constructor(x: number, y: number) {
         this.x = x;
@@ -20,6 +23,9 @@ export class Tank {
         this.speed = 64;
         this.width = 32;
         this.height = 32;
+        this.health = 1;
+        this.scoreValue = 0;
+        this.bulletLevel = 1;
     }
 
     update(deltaTime: number): void {

@@ -8,6 +8,8 @@ export enum BulletDirection {
 export class Bullet {
   x: number;
   y: number;
+  width: number = 8;
+  height: number = 8;
   direction: BulletDirection;
   speed: number; // pixels per second
   active: boolean;
