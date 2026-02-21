@@ -75,6 +75,14 @@ function update(deltaTime: number) {
         }
     }
     
+    // R to restart
+    if (inputManager.isPressed('KeyR') && (gameState === GameState.GameOver || gameState === GameState.LevelComplete)) {
+        currentLevel = 1;
+        resetLevel();
+        initPlayerTank();
+        gameState = GameState.Playing;
+    }
+    
     switch (gameState) {
         case GameState.Menu:
             break;
@@ -114,19 +122,19 @@ function update(deltaTime: number) {
                 
                 playerTank.update(deltaTime);
                 
-                // Check player-enemy collision
+                // Check player-enemy collision - block like wall
                 if (playerTank) {
                     for (const enemy of enemies) {
                         if (playerTank.x < enemy.x + enemy.width &&
                             playerTank.x + playerTank.width > enemy.x &&
                             playerTank.y < enemy.y + enemy.height &&
                             playerTank.y + playerTank.height > enemy.y) {
-                            // Push player back
+                            const distance = playerTank.speed * deltaTime;
                             switch (playerTank.direction) {
-                                case Direction.Up: playerTank.y += 10; break;
-                                case Direction.Down: playerTank.y -= 10; break;
-                                case Direction.Left: playerTank.x += 10; break;
-                                case Direction.Right: playerTank.x -= 10; break;
+                                case Direction.Up: playerTank.y += distance; break;
+                                case Direction.Down: playerTank.y -= distance; break;
+                                case Direction.Left: playerTank.x += distance; break;
+                                case Direction.Right: playerTank.x -= distance; break;
                             }
                         }
                     }
@@ -200,7 +208,11 @@ function update(deltaTime: number) {
                         b.y + b.height > e.y) {
                         b.active = false;
                         e.health--;
-                        soundManager.playHit();
+                        if (e.health > 0) {
+                            soundManager.playMetalHit();
+                        } else {
+                            soundManager.playHit();
+                        }
                         if (e.health <= 0) {
                             e.active = false;
                             soundManager.playExplosion();
@@ -251,7 +263,23 @@ function update(deltaTime: number) {
             
             for (let i = enemies.length - 1; i >= 0; i--) {
                 enemies[i].update(deltaTime);
-                // Remove enemies that are no longer active
+                
+                // Check enemy-player collision - block like wall
+                if (playerTank && enemies[i].active) {
+                    if (playerTank.x < enemies[i].x + enemies[i].width &&
+                        playerTank.x + playerTank.width > enemies[i].x &&
+                        playerTank.y < enemies[i].y + enemies[i].height &&
+                        playerTank.y + playerTank.height > enemies[i].y) {
+                        const distance = enemies[i].speed * deltaTime;
+                        switch (enemies[i].direction) {
+                            case Direction.Up: enemies[i].y += distance; break;
+                            case Direction.Down: enemies[i].y -= distance; break;
+                            case Direction.Left: enemies[i].x += distance; break;
+                            case Direction.Right: enemies[i].x -= distance; break;
+                        }
+                    }
+                }
+                
                 if (!enemies[i].active) {
                     enemies.splice(i, 1);
                 }
@@ -320,6 +348,21 @@ function render() {
                     renderer.drawTank(enemy.x, enemy.y, enemy.width, dir, color);
                 }
             }
+            
+            // Draw HUD - Player health as hearts
+            if (playerTank) {
+                for (let i = 0; i < playerTank.health; i++) {
+                    renderer.drawHeart(20 + i * 25, 20);
+                }
+            }
+            
+            // Draw HUD - Level
+            renderer.drawText(`关卡: ${currentLevel}`, 750, 30, 'white', 20);
+            
+            // Draw HUD - Remaining enemies
+            const remainingEnemies = MAX_ENEMIES_PER_LEVEL - enemiesSpawned + enemies.filter(e => e.active).length;
+            renderer.drawText(`敌人: ${remainingEnemies}`, 750, 60, 'white', 20);
+            
             break;
             
         case GameState.Paused:

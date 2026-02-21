@@ -47,6 +47,11 @@ export class Tank {
                 this.x += distance;
                 break;
         }
+        
+        if (this.x < 0) this.x = 0;
+        if (this.y < 0) this.y = 0;
+        if (this.x + this.width > 832) this.x = 832 - this.width;
+        if (this.y + this.height > 832) this.y = 832 - this.height;
     }
 
     move(direction: Direction): void {

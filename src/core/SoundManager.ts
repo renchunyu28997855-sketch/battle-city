@@ -146,4 +146,25 @@ export class SoundManager {
         osc.start(this.audioCtx.currentTime);
         osc.stop(this.audioCtx.currentTime + 0.15);
     }
+    
+    playMetalHit(): void {
+        this.initAudio();
+        if (!this.audioCtx) return;
+        
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        
+        osc.frequency.setValueAtTime(1200, this.audioCtx.currentTime);
+        osc.frequency.setValueAtTime(1200, this.audioCtx.currentTime + 0.05);
+        osc.type = 'sine';
+        
+        gain.gain.setValueAtTime(0.4, this.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.15);
+        
+        osc.start(this.audioCtx.currentTime);
+        osc.stop(this.audioCtx.currentTime + 0.15);
+    }
 }

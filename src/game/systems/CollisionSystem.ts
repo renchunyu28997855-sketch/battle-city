@@ -3,12 +3,15 @@ import { Tank } from '../entities/Tank';
 import { PlayerTank } from '../entities/PlayerTank';
 import { EnemyTank } from '../entities/EnemyTank';
 import { MapSystem, TileType } from './MapSystem';
+import { SoundManager } from '../../core/SoundManager';
 
 export class CollisionSystem {
   private mapSystem: MapSystem;
+  private soundManager: SoundManager;
 
   constructor(mapSystem: MapSystem) {
     this.mapSystem = mapSystem;
+    this.soundManager = SoundManager.getInstance();
   }
 
   /**
@@ -39,56 +42,47 @@ export class CollisionSystem {
   handleBulletCollisions(bullet: Bullet): void {
     if (!bullet.active) return;
 
-    const bulletX = bullet.x;
-    const bulletY = bullet.y;
+    const bulletCenterX = bullet.x + bullet.width / 2;
+    const bulletCenterY = bullet.y + bullet.height / 2;
+    
+    const tileX = Math.floor(bulletCenterX / 64);
+    const tileY = Math.floor(bulletCenterY / 64);
 
-    // Check collision with map tiles
-    const tileX = Math.floor(bulletX / 64);
-    const tileY = Math.floor(bulletY / 64);
-
-    // Check surrounding tiles for potential collisions
-    const checkTiles = [
-      {x: tileX, y: tileY},
-      {x: tileX + 1, y: tileY},
-      {x: tileX, y: tileY + 1},
-      {x: tileX + 1, y: tileY + 1}
-    ];
-
-    for (const tile of checkTiles) {
-      const tileType = this.mapSystem.getTile(tile.x, tile.y);
-      
-      switch (tileType) {
-        case TileType.Brick:
-          this.mapSystem.setTile(tile.x, tile.y, TileType.Empty);
-          bullet.active = false;
-          return;
-          
-        case TileType.Steel:
-          if (bullet.isSteel || bullet.powerLevel >= 2) {
-            this.mapSystem.setTile(tile.x, tile.y, TileType.Empty);
-          }
-          bullet.active = false;
-          return;
-          
-        case TileType.Water:
-          bullet.active = false;
-          return;
-          
-        case TileType.Base:
-          bullet.active = false;
-          return;
-          
-        case TileType.Eagle:
-          bullet.active = false;
-          (window as any).eagleDestroyed = true;
-          return;
-          
-        case TileType.Forest:
-        case TileType.Floor:
-        case TileType.Empty:
-        default:
-          break;
-      }
+    const tileType = this.mapSystem.getTile(tileX, tileY);
+    
+    switch (tileType) {
+      case TileType.Brick:
+        this.mapSystem.setTile(tileX, tileY, TileType.Empty);
+        bullet.active = false;
+        return;
+        
+      case TileType.Steel:
+        if (bullet.isSteel || bullet.powerLevel >= 2) {
+          this.mapSystem.setTile(tileX, tileY, TileType.Empty);
+        } else {
+          this.soundManager.playMetalHit();
+        }
+        bullet.active = false;
+        return;
+        
+      case TileType.Water:
+        bullet.active = false;
+        return;
+        
+      case TileType.Base:
+        bullet.active = false;
+        return;
+        
+      case TileType.Eagle:
+        bullet.active = false;
+        (window as any).eagleDestroyed = true;
+        return;
+        
+      case TileType.Forest:
+      case TileType.Floor:
+      case TileType.Empty:
+      default:
+        break;
     }
   }
 

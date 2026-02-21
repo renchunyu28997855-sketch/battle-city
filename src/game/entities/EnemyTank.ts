@@ -82,22 +82,22 @@ export class EnemyTank extends Tank {
     }
 
     checkCollision(): boolean {
-        const tileX = Math.floor(this.x / 64);
-        const tileY = Math.floor(this.y / 64);
-        
-        if (tileX < 0 || tileX >= 13 || tileY < 0 || tileY >= 13) {
-            return true;
-        }
-        
-        const cornerTiles = [
-            {x: tileX, y: tileY},
-            {x: tileX + 1, y: tileY},  
-            {x: tileX, y: tileY + 1},
-            {x: tileX + 1, y: tileY + 1}
+        const corners = [
+            { x: this.x, y: this.y },
+            { x: this.x + this.width - 1, y: this.y },
+            { x: this.x, y: this.y + this.height - 1 },
+            { x: this.x + this.width - 1, y: this.y + this.height - 1 }
         ];
 
-        for (const tile of cornerTiles) {
-            const tileType = this.mapSystem.getTile(tile.x, tile.y);
+        for (const corner of corners) {
+            const tileX = Math.floor(corner.x / 64);
+            const tileY = Math.floor(corner.y / 64);
+            
+            if (tileX < 0 || tileX >= 13 || tileY < 0 || tileY >= 13) {
+                return true;
+            }
+            
+            const tileType = this.mapSystem.getTile(tileX, tileY);
             if (this.isBlocking(tileType)) {
                 return true;
             }

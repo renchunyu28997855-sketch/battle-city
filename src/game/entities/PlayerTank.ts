@@ -5,8 +5,11 @@ export class PlayerTank extends Tank {
     private mapSystem: MapSystem;
 
     constructor(mapSystem: MapSystem) {
-        super(4 * 64, 10 * 64);
+        super(5 * 64, 11 * 64);
         this.mapSystem = mapSystem;
+        this.health = 3;
+        this.speed = 128;
+        this.bulletLevel = 2;
     }
 
     update(deltaTime: number): void {
@@ -27,6 +30,11 @@ export class PlayerTank extends Tank {
                 break;
         }
         
+        if (this.x < 0) this.x = 0;
+        if (this.y < 0) this.y = 0;
+        if (this.x + this.width > 832) this.x = 832 - this.width;
+        if (this.y + this.height > 832) this.y = 832 - this.height;
+        
         if (this.checkCollision()) {
             switch (this.direction) {
                 case Direction.Up:
@@ -46,22 +54,22 @@ export class PlayerTank extends Tank {
     }
 
     checkCollision(): boolean {
-        const tileX = Math.floor(this.x / 64);
-        const tileY = Math.floor(this.y / 64);
-        
-        if (tileX < 0 || tileX >= 13 || tileY < 0 || tileY >= 13) {
-            return true;
-        }
-        
-        const cornerTiles = [
-            {x: tileX, y: tileY},
-            {x: tileX + 1, y: tileY},  
-            {x: tileX, y: tileY + 1},
-            {x: tileX + 1, y: tileY + 1}
+        const corners = [
+            { x: this.x, y: this.y },
+            { x: this.x + this.width - 1, y: this.y },
+            { x: this.x, y: this.y + this.height - 1 },
+            { x: this.x + this.width - 1, y: this.y + this.height - 1 }
         ];
 
-        for (const tile of cornerTiles) {
-            const tileType = this.mapSystem.getTile(tile.x, tile.y);
+        for (const corner of corners) {
+            const tileX = Math.floor(corner.x / 64);
+            const tileY = Math.floor(corner.y / 64);
+            
+            if (tileX < 0 || tileX >= 13 || tileY < 0 || tileY >= 13) {
+                return true;
+            }
+            
+            const tileType = this.mapSystem.getTile(tileX, tileY);
             if (this.isBlocking(tileType)) {
                 return true;
             }

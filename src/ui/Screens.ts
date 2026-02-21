@@ -68,12 +68,14 @@ export class Screens {
         this.renderer.clear();
         
         // Draw game over title
-        this.renderer.drawRect(200, 100, 400, 50, 'white');
-        this.renderer.drawRect(210, 110, 380, 30, 'black');
+        this.renderer.drawRect(200, 100, 400, 60, 'white');
+        this.renderer.drawRect(210, 110, 380, 40, 'black');
+        this.renderer.drawText('游戏结束', 400, 130, 'white', 28);
         
         // Draw restart instruction
-        this.renderer.drawRect(200, 300, 400, 50, 'white');
-        this.renderer.drawRect(210, 310, 380, 30, 'black');
+        this.renderer.drawRect(200, 300, 400, 60, 'white');
+        this.renderer.drawRect(210, 310, 380, 40, 'black');
+        this.renderer.drawText('按 R 重新开始', 400, 330, 'white', 24);
     }
 
     /**

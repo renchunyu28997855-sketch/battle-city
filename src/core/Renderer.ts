@@ -147,4 +147,25 @@ export class Renderer {
         ctx.fillStyle = '#404040';
         ctx.fillRect(x, y, size, size);
     }
+
+    drawText(text: string, x: number, y: number, color: string = 'white', fontSize: number = 24): void {
+        const ctx = this.ctx;
+        ctx.fillStyle = this.palette[color] || color;
+        ctx.font = `${fontSize}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, x, y);
+    }
+
+    drawHeart(x: number, y: number, size: number = 20): void {
+        const ctx = this.ctx;
+        ctx.fillStyle = '#FF0000';
+        ctx.beginPath();
+        ctx.moveTo(x + size/2, y + size/4);
+        ctx.bezierCurveTo(x + size/2, y, x, y, x, y + size/4);
+        ctx.bezierCurveTo(x, y + size/2, x + size/2, y + size*0.75, x + size/2, y + size);
+        ctx.bezierCurveTo(x + size/2, y + size*0.75, x + size, y + size/2, x + size, y + size/4);
+        ctx.bezierCurveTo(x + size, y, x + size/2, y, x + size/2, y + size/4);
+        ctx.fill();
+    }
 }
