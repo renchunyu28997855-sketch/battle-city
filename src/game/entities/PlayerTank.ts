@@ -6,7 +6,7 @@ export class PlayerTank extends Tank {
     canPassWater: boolean = false;
 
     constructor(mapSystem: MapSystem) {
-        super(3 * 64, 11 * 64);
+        super(4 * 64, 12 * 64);
         this.mapSystem = mapSystem;
         this.health = 3;
         this.speed = 128;
