@@ -64,7 +64,7 @@ const MAX_ENEMIES_PER_LEVEL: number = 20;
 const MAX_ON_SCREEN_ENEMIES: number = 4;
 let currentLevel: number = 1;
 let selectedLevel: number = 0;
-let maxUnlockedLevel: number = 0;
+let maxUnlockedLevel: number = 39;
 let lKeyReleased: boolean = true;
 let enterKeyReleased: boolean = true;
 const TOTAL_LEVELS: number = 40;
@@ -213,7 +213,6 @@ function update(deltaTime: number) {
         }
         if (inputManager.isPressed('KeyL') && lKeyReleased) {
             selectedLevel = 0;
-            maxUnlockedLevel = 0;
             gameState = GameState.LevelSelect;
             lKeyReleased = false;
         }
