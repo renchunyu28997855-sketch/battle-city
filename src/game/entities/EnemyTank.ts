@@ -1,6 +1,6 @@
 import { Tank, Direction } from './Tank';
 import { MapSystem, TileType } from '../systems/MapSystem';
-import { Bullet, BulletDirection } from './Bullet';
+import { BulletDirection } from './Bullet';
 import { BulletPool } from './BulletPool';
 
 export class EnemyTank extends Tank {
