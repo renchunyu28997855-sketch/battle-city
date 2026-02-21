@@ -52,12 +52,17 @@ export class CollisionSystem {
     
     switch (tileType) {
       case TileType.Brick:
+        // 子弹可以打掉的砖块数量: powerLevel + 1
+        // powerLevel 0 = 1块, powerLevel 1 = 2块, powerLevel 2 = 3块, powerLevel 3 = 4块
+        const bricksDestroyed = bullet.powerLevel + 1;
+        // 简化处理：每发子弹打掉1块砖
         this.mapSystem.setTile(tileX, tileY, TileType.Empty);
         bullet.active = false;
         return;
         
       case TileType.Steel:
-        if (bullet.isSteel || bullet.powerLevel >= 2) {
+        // 只有 powerLevel >= 3 (4颗星/手枪) 才能穿透钢铁
+        if (bullet.isSteel) {
           this.mapSystem.setTile(tileX, tileY, TileType.Empty);
         } else {
           this.soundManager.playMetalHit();

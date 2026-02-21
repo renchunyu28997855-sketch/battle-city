@@ -41,9 +41,10 @@ export class Bullet {
     this.active = true;
     this.lastFiredTime = currentTime;
     this.powerLevel = powerLevel;
+    // 只有 powerLevel >= 3 (4颗星/手枪) 才能穿透钢铁
     this.isSteel = powerLevel >= 3;
     
-    // 根据 powerLevel 设置速度档位 (0->1, 1->1, 2->2, 3->3)
+    // 根据 powerLevel 设置速度档位
     const speedIndex = Math.min(Math.max(powerLevel, 0), 2);
     this.speed = Bullet.SPEED_LEVELS[speedIndex];
     
