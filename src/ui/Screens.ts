@@ -102,7 +102,7 @@ export class Screens {
             
             // Highlight selected level
             const isSelected = levelIndex === selectedLevel;
-            const isUnlocked = levelIndex < maxUnlockedLevel;
+            const isUnlocked = levelIndex <= maxUnlockedLevel;
             
             if (isSelected) {
                 this.renderer.drawRect(x - 10, y - 5, width + 20, height + 10, 'orange');

@@ -65,6 +65,8 @@ const MAX_ON_SCREEN_ENEMIES: number = 4;
 let currentLevel: number = 1;
 let selectedLevel: number = 0;
 let maxUnlockedLevel: number = 0;
+let lKeyReleased: boolean = true;
+let enterKeyReleased: boolean = true;
 const TOTAL_LEVELS: number = 40;
 let escKeyReleased: boolean = true;
 
@@ -201,38 +203,56 @@ function update(deltaTime: number) {
     
     // Level select handling
     if (gameState === GameState.Menu) {
-        if (inputManager.isPressed('Enter')) {
+        if (inputManager.isPressed('Enter') && enterKeyReleased) {
             currentLevel = 1;
             loadLevel(currentLevel);
             resetLevel();
             initPlayerTank();
             gameState = GameState.Playing;
+            enterKeyReleased = false;
         }
-        if (inputManager.isPressed('KeyL')) {
+        if (inputManager.isPressed('KeyL') && lKeyReleased) {
             selectedLevel = 0;
-            maxUnlockedLevel = Math.min(maxUnlockedLevel + 1, TOTAL_LEVELS);
+            maxUnlockedLevel = 0;
             gameState = GameState.LevelSelect;
+            lKeyReleased = false;
+        }
+        if (!inputManager.isPressed('Enter')) {
+            enterKeyReleased = true;
+        }
+        if (!inputManager.isPressed('KeyL')) {
+            lKeyReleased = true;
         }
     }
     
     if (gameState === GameState.LevelSelect) {
-        if (inputManager.isPressed('Escape')) {
+        if (inputManager.isPressed('Escape') && escKeyReleased) {
             gameState = GameState.Menu;
+            escKeyReleased = false;
         }
+        if (!inputManager.isPressed('Escape')) {
+            escKeyReleased = true;
+        }
+        
         if (inputManager.isPressed('ArrowUp') || inputManager.isPressed('KeyW')) {
             if (selectedLevel > 0) selectedLevel--;
         }
         if (inputManager.isPressed('ArrowDown') || inputManager.isPressed('KeyS')) {
             if (selectedLevel < TOTAL_LEVELS - 1) selectedLevel++;
         }
-        if (inputManager.isPressed('Enter')) {
+        
+        if (inputManager.isPressed('Enter') && enterKeyReleased) {
             if (selectedLevel <= maxUnlockedLevel) {
                 currentLevel = selectedLevel + 1;
                 loadLevel(currentLevel);
                 resetLevel();
                 initPlayerTank();
                 gameState = GameState.Playing;
+                enterKeyReleased = false;
             }
+        }
+        if (!inputManager.isPressed('Enter')) {
+            enterKeyReleased = true;
         }
     }
     
