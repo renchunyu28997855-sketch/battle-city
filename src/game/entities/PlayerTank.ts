@@ -5,7 +5,7 @@ export class PlayerTank extends Tank {
     private mapSystem: MapSystem;
 
     constructor(mapSystem: MapSystem) {
-        super(5 * 64, 11 * 64);
+        super(3 * 64, 11 * 64);
         this.mapSystem = mapSystem;
         this.health = 3;
         this.speed = 128;
@@ -54,11 +54,12 @@ export class PlayerTank extends Tank {
     }
 
     checkCollision(): boolean {
+        const margin = 4;
         const corners = [
-            { x: this.x, y: this.y },
-            { x: this.x + this.width - 1, y: this.y },
-            { x: this.x, y: this.y + this.height - 1 },
-            { x: this.x + this.width - 1, y: this.y + this.height - 1 }
+            { x: this.x + margin, y: this.y + margin },
+            { x: this.x + this.width - margin - 1, y: this.y + margin },
+            { x: this.x + margin, y: this.y + this.height - margin - 1 },
+            { x: this.x + this.width - margin - 1, y: this.y + this.height - margin - 1 }
         ];
 
         for (const corner of corners) {

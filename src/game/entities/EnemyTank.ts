@@ -82,11 +82,12 @@ export class EnemyTank extends Tank {
     }
 
     checkCollision(): boolean {
+        const margin = 4;
         const corners = [
-            { x: this.x, y: this.y },
-            { x: this.x + this.width - 1, y: this.y },
-            { x: this.x, y: this.y + this.height - 1 },
-            { x: this.x + this.width - 1, y: this.y + this.height - 1 }
+            { x: this.x + margin, y: this.y + margin },
+            { x: this.x + this.width - margin - 1, y: this.y + margin },
+            { x: this.x + margin, y: this.y + this.height - margin - 1 },
+            { x: this.x + this.width - margin - 1, y: this.y + this.height - margin - 1 }
         ];
 
         for (const corner of corners) {

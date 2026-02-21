@@ -18,19 +18,22 @@ export class MapSystem {
         // Place eagle at bottom center (column 6, row 12)
         this.grid[12][6] = TileType.Eagle;
         
-        // Surround eagle with bricks (only left and right, not blocking spawn)
+        // Surround eagle with bricks (left, right, top, and top corners)
         const eagleWalls = [
-            [5,12],[7,12]
+            [5,12],[7,12],  // left, right
+            [6,11],          // top
+            [5,11],[7,11]   // top left, top right
         ];
         for (const [x,y] of eagleWalls) {
             this.grid[y][x] = TileType.Brick;
         }
 
-        // Clear spawn area at bottom for player (columns 4-8, rows 11-12)
-        for (let x = 4; x <= 8; x++) {
-            for (let y = 10; y <= 12; y++) {
-                this.grid[y][x] = TileType.Empty;
-            }
+        // Clear spawn area at bottom for player (columns 4-5 and 7-8, row 11 only)
+        for (let x = 4; x <= 5; x++) {
+            this.grid[11][x] = TileType.Empty;
+        }
+        for (let x = 7; x <= 8; x++) {
+            this.grid[11][x] = TileType.Empty;
         }
         
         // Clear top left spawn area for enemies (columns 0-2, rows 0-1)

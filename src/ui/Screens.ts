@@ -55,10 +55,10 @@ export class Screens {
     drawPaused(): void {
         this.renderer.clear();
         
-        // Draw pause overlay
-        this.renderer.drawRect(0, 0, 800, 600, 'black');
-        this.renderer.drawRect(250, 200, 300, 200, 'white');
-        this.renderer.drawRect(260, 210, 280, 180, 'black');
+        this.renderer.drawRect(250, 200, 332, 120, 'white');
+        this.renderer.drawRect(260, 210, 312, 100, 'black');
+        this.renderer.drawText('暂停', 416, 250, 'white', 32);
+        this.renderer.drawText('按 ESC 继续', 416, 290, 'white', 24);
     }
 
     /**

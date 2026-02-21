@@ -47,12 +47,11 @@ const MAX_ENEMIES_PER_LEVEL: number = 20;
 const MAX_ON_SCREEN_ENEMIES: number = 4;
 let currentLevel: number = 1;
 const TOTAL_LEVELS: number = 50;
+let escKeyReleased: boolean = true;
 
 // Initialize player tank
 function initPlayerTank() {
     playerTank = new PlayerTank(mapSystem);
-    playerTank.x = 5 * 64;
-    playerTank.y = 11 * 64;
 }
 
 // Reset level
@@ -68,11 +67,16 @@ function resetLevel() {
 function update(deltaTime: number) {
     // ESC to pause/resume
     if (inputManager.isPressed('Escape')) {
-        if (gameState === GameState.Playing) {
-            gameState = GameState.Paused;
-        } else if (gameState === GameState.Paused) {
-            gameState = GameState.Playing;
+        if (escKeyReleased) {
+            if (gameState === GameState.Playing) {
+                gameState = GameState.Paused;
+            } else if (gameState === GameState.Paused) {
+                gameState = GameState.Playing;
+            }
+            escKeyReleased = false;
         }
+    } else {
+        escKeyReleased = true;
     }
     
     // R to restart
@@ -363,6 +367,8 @@ function render() {
             const remainingEnemies = MAX_ENEMIES_PER_LEVEL - enemiesSpawned + enemies.filter(e => e.active).length;
             renderer.drawText(`敌人: ${remainingEnemies}`, 750, 60, 'white', 20);
             
+            drawForestOverlay();
+            
             break;
             
         case GameState.Paused:
@@ -396,7 +402,7 @@ function drawMap() {
                     renderer.drawSteel(x * tileSize, y * tileSize, tileSize);
                     break;
                 case TileType.Water:
-                    renderer.drawRect(x * tileSize, y * tileSize, tileSize, tileSize, 'cyan');
+                    renderer.drawWater(x * tileSize, y * tileSize, tileSize);
                     break;
                 case TileType.Base:
                     renderer.drawBase(x * tileSize, y * tileSize, tileSize);
@@ -405,7 +411,6 @@ function drawMap() {
                     renderer.drawEagle(x * tileSize, y * tileSize, tileSize);
                     break;
                 case TileType.Forest:
-                    renderer.drawForest(x * tileSize, y * tileSize, tileSize);
                     break;
                 case TileType.Floor:
                     renderer.drawFloor(x * tileSize, y * tileSize, tileSize);
@@ -413,6 +418,21 @@ function drawMap() {
                 case TileType.Empty:
                 default:
                     break;
+            }
+        }
+    }
+}
+
+function drawForestOverlay() {
+    const dimensions = mapSystem.getDimensions();
+    const tileSize = mapSystem.getTileSize();
+    
+    for (let y = 0; y < dimensions.height; y++) {
+        for (let x = 0; x < dimensions.width; x++) {
+            const tileType = mapSystem.getTile(x, y);
+            
+            if (tileType === TileType.Forest) {
+                renderer.drawForest(x * tileSize, y * tileSize, tileSize);
             }
         }
     }

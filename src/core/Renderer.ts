@@ -86,11 +86,11 @@ export class Renderer {
         ctx.fillRect(x + 1, y + 1, brickW, brickH);
         ctx.fillRect(x + size/2 + 1, y + 1, brickW, brickH);
         ctx.fillRect(x + 1, y + size/4 + 1, brickW/2 - 1, brickH);
-        ctx.fillRect(x + brickW/2 + 1, y + size/4 + 1, brickW, brickH);
+        ctx.fillRect(x + brickW/2 + 1, y + size/4 + 1, 1.5*brickW, brickH);
         ctx.fillRect(x + 1, y + size/2 + 1, brickW, brickH);
         ctx.fillRect(x + size/2 + 1, y + size/2 + 1, brickW, brickH);
         ctx.fillRect(x + 1, y + size * 0.75 + 1, brickW/2 - 1, brickH);
-        ctx.fillRect(x + brickW/2 + 1, y + size * 0.75 + 1, brickW, brickH);
+        ctx.fillRect(x + brickW/2 + 1, y + size * 0.75 + 1, 1.5*brickW, brickH);
     }
 
     drawSteel(x: number, y: number, size: number): void {
@@ -100,6 +100,16 @@ export class Renderer {
         ctx.fillStyle = '#888888';
         ctx.fillRect(x + 4, y + 4, size/2 - 4, size/2 - 4);
         ctx.fillRect(x + size/2 + 2, y + size/2 + 2, size/2 - 6, size/2 - 6);
+    }
+
+    drawWater(x: number, y: number, size: number): void {
+        const ctx = this.ctx;
+        ctx.fillStyle = '#00CED1';
+        ctx.fillRect(x + 2, y + 2, size - 4, size - 4);
+        ctx.fillStyle = '#20B2AA';
+        ctx.fillRect(x + 4, y + size/4, size/3, 3);
+        ctx.fillRect(x + size/2 + 2, y + size/2, size/3, 3);
+        ctx.fillRect(x + 6, y + size*0.7, size/4, 3);
     }
 
     drawBase(x: number, y: number, size: number): void {
@@ -129,11 +139,22 @@ export class Renderer {
         const ctx = this.ctx;
         ctx.fillStyle = '#228B22';
         const treePositions = [
-            { cx: 0.25, cy: 0.25, r: 0.2 },
-            { cx: 0.6, cy: 0.3, r: 0.18 },
-            { cx: 0.4, cy: 0.6, r: 0.22 },
-            { cx: 0.75, cy: 0.7, r: 0.17 },
-            { cx: 0.2, cy: 0.75, r: 0.19 }
+            { cx: 0.15, cy: 0.15, r: 0.25 },
+            { cx: 0.4, cy: 0.2, r: 0.22 },
+            { cx: 0.7, cy: 0.15, r: 0.24 },
+            { cx: 0.25, cy: 0.4, r: 0.23 },
+            { cx: 0.55, cy: 0.35, r: 0.21 },
+            { cx: 0.8, cy: 0.4, r: 0.2 },
+            { cx: 0.2, cy: 0.6, r: 0.22 },
+            { cx: 0.45, cy: 0.55, r: 0.24 },
+            { cx: 0.7, cy: 0.6, r: 0.21 },
+            { cx: 0.9, cy: 0.55, r: 0.19 },
+            { cx: 0.3, cy: 0.8, r: 0.2 },
+            { cx: 0.6, cy: 0.75, r: 0.23 },
+            { cx: 0.85, cy: 0.8, r: 0.18 },
+            { cx: 0.1, cy: 0.9, r: 0.17 },
+            { cx: 0.5, cy: 0.9, r: 0.19 },
+            { cx: 0.75, cy: 0.92, r: 0.16 }
         ];
         for (const tree of treePositions) {
             ctx.beginPath();
