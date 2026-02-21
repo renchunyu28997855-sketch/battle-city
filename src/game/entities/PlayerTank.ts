@@ -3,6 +3,7 @@ import { MapSystem, TileType } from '../systems/MapSystem';
 
 export class PlayerTank extends Tank {
     private mapSystem: MapSystem;
+    canPassWater: boolean = false;
 
     constructor(mapSystem: MapSystem) {
         super(3 * 64, 11 * 64);
@@ -80,6 +81,9 @@ export class PlayerTank extends Tank {
     }
 
     private isBlocking(tileType: TileType): boolean {
+        if (tileType === TileType.Water && this.canPassWater) {
+            return false;
+        }
         return tileType === TileType.Brick || 
                tileType === TileType.Steel || 
                tileType === TileType.Water || 

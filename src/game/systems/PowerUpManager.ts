@@ -1,12 +1,14 @@
 import { Vector2D } from "../utils/Vector2D";
 
 export enum PowerUpType {
-  HELMET = "helmet",
-  STAR = "star",
-  BOMB = "bomb",
-  CLOCK = "clock",
-  SHOVEL = "shovel",
-  TANK = "tank"
+  HELMET = "helmet",   // 头盔 - 暂时无敌 15秒
+  STAR = "star",       // 星星 - 火力+1级 永久
+  BOMB = "bomb",       // 手雷 - 敌全灭 即时
+  CLOCK = "clock",     // 时钟 - 敌人暂停 10秒
+  SHOVEL = "shovel",   // 铁锹 - 基地变钢板 20秒
+  TANK = "tank",       // 坦克 - 奖励1条命 永久
+  BOAT = "boat",       // 船 - 能过海水 永久
+  GUN = "gun"          // 钢枪 - 直接3级火力 永久
 }
 
 export class PowerUpManager {
@@ -24,7 +26,9 @@ export class PowerUpManager {
     PowerUpType.BOMB,
     PowerUpType.CLOCK,
     PowerUpType.SHOVEL,
-    PowerUpType.TANK
+    PowerUpType.TANK,
+    PowerUpType.BOAT,
+    PowerUpType.GUN
   ];
 
   private static POWER_UP_DURATION = 15000;

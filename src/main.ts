@@ -24,6 +24,8 @@ import { HeavyTank } from './game/enemies/HeavyTank';
 import { NormalTank } from './game/enemies/NormalTank';
 import { CollisionSystem } from './game/systems/CollisionSystem';
 import { SoundManager } from './core/SoundManager';
+import { PowerUpManager, PowerUpType } from './game/systems/PowerUpManager';
+import { Vector2D } from './game/utils/Vector2D';
 
 // Initialize core systems
 const inputManager = new InputManager();
@@ -32,6 +34,19 @@ const mapSystem = new MapSystem();
 const screens = new Screens(renderer);
 const collisionSystem = new CollisionSystem(mapSystem);
 const soundManager = SoundManager.getInstance();
+const powerUpManager = new PowerUpManager();
+
+// Power-up state variables
+let playerInvincible = false;
+let playerCanPassWater = false;
+let enemiesFrozen = false;
+let enemyFreezeTimer = 0;
+let shovelTimer = 0;
+let invincibleTimer = 0;
+const INVINCIBLE_DURATION = 15000;
+const CLOCK_DURATION = 10000;
+const SHOVEL_DURATION = 20000;
+void playerCanPassWater;
 
 // Game state - start in Playing mode
 let gameState: GameState = GameState.Playing;
@@ -71,6 +86,77 @@ function resetLevel() {
     enemiesSpawned = 0;
     enemySpawnTimer = 0;
     (window as any).eagleDestroyed = false;
+    playerInvincible = false;
+    playerCanPassWater = false;
+    enemiesFrozen = false;
+    enemyFreezeTimer = 0;
+    shovelTimer = 0;
+    invincibleTimer = 0;
+    playerInvincible = false;
+    playerCanPassWater = false;
+    if (playerTank) {
+        playerTank.canPassWater = false;
+    }
+}
+
+// Apply power-up effect
+function applyPowerUpEffect(type: PowerUpType) {
+    if (!playerTank) return;
+    
+    switch (type) {
+        case PowerUpType.HELMET:
+            playerInvincible = true;
+            invincibleTimer = INVINCIBLE_DURATION;
+            break;
+        case PowerUpType.STAR:
+            if (playerTank.bulletLevel < 3) {
+                playerTank.bulletLevel++;
+            }
+            break;
+        case PowerUpType.BOMB:
+            for (const enemy of enemies) {
+                if (enemy.active) {
+                    enemy.health = 0;
+                    enemy.active = false;
+                    explosions.push({
+                        x: enemy.x,
+                        y: enemy.y,
+                        size: enemy.width,
+                        startTime: Date.now()
+                    });
+                }
+            }
+            break;
+        case PowerUpType.CLOCK:
+            enemiesFrozen = true;
+            enemyFreezeTimer = CLOCK_DURATION;
+            break;
+        case PowerUpType.SHOVEL:
+            shovelTimer = SHOVEL_DURATION;
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    const x = 6 + dx;
+                    const y = 12 + dy;
+                    if (x >= 0 && x < 13 && y >= 0 && y < 13) {
+                        const tile = mapSystem.getTile(x, y);
+                        if (tile === TileType.Brick || tile === TileType.Floor) {
+                            mapSystem.setTile(x, y, TileType.Steel);
+                        }
+                    }
+                }
+            }
+            break;
+        case PowerUpType.TANK:
+            playerTank.health++;
+            break;
+        case PowerUpType.BOAT:
+            playerCanPassWater = true;
+            if (playerTank) playerTank.canPassWater = true;
+            break;
+        case PowerUpType.GUN:
+            playerTank.bulletLevel = 3;
+            break;
+    }
 }
 
 // Game update function
@@ -184,6 +270,72 @@ function update(deltaTime: number) {
                 enemySpawnTimer = 0; // Reset immediately after spawning
             }
             
+            // Spawn power-up occasionally (every ~15 seconds)
+            powerUpManager.update();
+            if (powerUpManager.getActivePowerUps().length < 2) {
+                const spawnChance = Math.random();
+                if (spawnChance < 0.01) { // ~1% chance per frame, roughly every 15 sec at 60fps
+                    const validPositions: {x: number, y: number}[] = [];
+                    for (let x = 0; x < 13; x++) {
+                        for (let y = 0; y < 13; y++) {
+                            const tile = mapSystem.getTile(x, y);
+                            if (tile === TileType.Empty || tile === TileType.Floor) {
+                                validPositions.push({x: x * 64, y: y * 64});
+                            }
+                        }
+                    }
+                    if (validPositions.length > 0) {
+                        const pos = validPositions[Math.floor(Math.random() * validPositions.length)];
+                        powerUpManager.spawnPowerUp(new Vector2D(pos.x, pos.y));
+                    }
+                }
+            }
+            
+            // Check player collecting power-ups
+            if (playerTank) {
+                const activePowerUps = powerUpManager.getActivePowerUps();
+                for (const pu of activePowerUps) {
+                    if (playerTank.x < pu.position.x + 64 &&
+                        playerTank.x + playerTank.width > pu.position.x &&
+                        playerTank.y < pu.position.y + 64 &&
+                        playerTank.y + playerTank.height > pu.position.y) {
+                        powerUpManager.activate(pu.id);
+                        applyPowerUpEffect(pu.type);
+                    }
+                }
+            }
+            
+            // Update power-up timers
+            if (invincibleTimer > 0) {
+                invincibleTimer -= deltaTime * 1000;
+                if (invincibleTimer <= 0) {
+                    playerInvincible = false;
+                }
+            }
+            if (enemyFreezeTimer > 0) {
+                enemyFreezeTimer -= deltaTime * 1000;
+                if (enemyFreezeTimer <= 0) {
+                    enemiesFrozen = false;
+                }
+            }
+            if (shovelTimer > 0) {
+                shovelTimer -= deltaTime * 1000;
+                if (shovelTimer <= 0) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        for (let dy = -1; dy <= 1; dy++) {
+                            const x = 6 + dx;
+                            const y = 12 + dy;
+                            if (x >= 0 && x < 13 && y >= 0 && y < 13) {
+                                const tile = mapSystem.getTile(x, y);
+                                if (tile === TileType.Steel) {
+                                    mapSystem.setTile(x, y, TileType.Brick);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
             const activeEnemies = enemies.filter(e => e.active).length;
             
             // Check win/lose conditions
@@ -256,11 +408,13 @@ function update(deltaTime: number) {
                         b.y < playerTank.y + playerTank.height &&
                         b.y + b.height > playerTank.y) {
                         b.active = false;
-                        playerTank.health--;
-                        soundManager.playHit();
-                        if (playerTank.health <= 0) {
-                            soundManager.playExplosion();
-                            gameState = GameState.GameOver;
+                        if (!playerInvincible) {
+                            playerTank.health--;
+                            soundManager.playHit();
+                            if (playerTank.health <= 0) {
+                                soundManager.playExplosion();
+                                gameState = GameState.GameOver;
+                            }
                         }
                     }
                 }
@@ -290,7 +444,9 @@ function update(deltaTime: number) {
             }
             
             for (let i = enemies.length - 1; i >= 0; i--) {
-                enemies[i].update(deltaTime);
+                if (!enemiesFrozen) {
+                    enemies[i].update(deltaTime);
+                }
                 
                 // Check enemy-player collision - block like wall
                 if (playerTank && enemies[i].active) {
@@ -391,6 +547,11 @@ function render() {
             const remainingEnemies = MAX_ENEMIES_PER_LEVEL - enemiesSpawned + enemies.filter(e => e.active).length;
             renderer.drawText(`敌人: ${remainingEnemies}`, 750, 60, 'white', 20);
             
+            // Draw power-ups
+            for (const pu of powerUpManager.getActivePowerUps()) {
+                drawPowerUp(pu.position.x, pu.position.y, pu.type);
+            }
+            
             drawForestOverlay();
             
             // Draw explosions
@@ -471,6 +632,53 @@ function drawForestOverlay() {
             }
         }
     }
+}
+
+function drawPowerUp(x: number, y: number, type: PowerUpType) {
+    const size = 48;
+    const offset = (64 - size) / 2;
+    x += offset;
+    y += offset;
+    
+    const ctx = renderer['ctx'];
+    ctx.save();
+    
+    const colors: Record<PowerUpType, string> = {
+        [PowerUpType.HELMET]: '#9B59B6',
+        [PowerUpType.STAR]: '#F1C40F',
+        [PowerUpType.BOMB]: '#E74C3C',
+        [PowerUpType.CLOCK]: '#3498DB',
+        [PowerUpType.SHOVEL]: '#E67E22',
+        [PowerUpType.TANK]: '#2ECC71',
+        [PowerUpType.BOAT]: '#1ABC9C',
+        [PowerUpType.GUN]: '#95A5A6'
+    };
+    
+    ctx.fillStyle = colors[type] || '#FFFFFF';
+    ctx.fillRect(x, y, size, size);
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, size, size);
+    
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    const icons: Record<PowerUpType, string> = {
+        [PowerUpType.HELMET]: '🪖',
+        [PowerUpType.STAR]: '⭐',
+        [PowerUpType.BOMB]: '💣',
+        [PowerUpType.CLOCK]: '⏱️',
+        [PowerUpType.SHOVEL]: '⛏️',
+        [PowerUpType.TANK]: '🎖️',
+        [PowerUpType.BOAT]: '🚢',
+        [PowerUpType.GUN]: '🔫'
+    };
+    
+    ctx.fillText(icons[type] || '?', x + size/2, y + size/2);
+    
+    ctx.restore();
 }
 
 // Start the game loop
