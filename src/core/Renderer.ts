@@ -264,6 +264,32 @@ export class Renderer {
         ctx.arc(x + size/2, y + size/2, size/4, 0, Math.PI*2);
         ctx.fill();
     }
+    
+    // 冰面 - 坦克会滑行
+    drawIce(x: number, y: number, size: number): void {
+        const ctx = this.ctx;
+        
+        ctx.fillStyle = '#555555';
+        ctx.fillRect(x, y, size, size);
+        
+        // 冰面底色 - 浅蓝色
+        ctx.fillStyle = 'rgba(173, 216, 230, 0.6)';
+        ctx.fillRect(x + 2, y + 2, size - 4, size - 4);
+        
+        // 冰面反光线条
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 1;
+        
+        ctx.beginPath();
+        ctx.moveTo(x + 5, y + size - 8);
+        ctx.lineTo(x + size - 8, y + 5);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(x + 10, y + size - 4);
+        ctx.lineTo(x + size - 4, y + 10);
+        ctx.stroke();
+    }
 
     // 这里原本是 Floor，在坦克大战中通常对应“冰面”
     drawFloor(x: number, y: number, size: number): void {

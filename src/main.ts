@@ -281,7 +281,7 @@ function update(deltaTime: number) {
                     for (let x = 0; x < 13; x++) {
                         for (let y = 0; y < 13; y++) {
                             const tile = mapSystem.getTile(x, y);
-                            if (tile === TileType.Empty || tile === TileType.Floor) {
+                            if (tile === TileType.Empty || tile === TileType.Floor || tile === TileType.Brick) {
                                 validPositions.push({x: x * 64, y: y * 64});
                             }
                         }
@@ -612,6 +612,9 @@ function drawMap() {
                     break;
                 case TileType.Floor:
                     renderer.drawFloor(x * tileSize, y * tileSize, tileSize);
+                    break;
+                case TileType.Ice:
+                    renderer.drawIce(x * tileSize, y * tileSize, tileSize);
                     break;
                 case TileType.Empty:
                 default:

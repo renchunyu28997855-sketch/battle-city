@@ -6,7 +6,8 @@ export enum TileType {
     Base,
     Eagle,
     Forest,
-    Floor
+    Floor,
+    Ice
 }
 
 export class MapSystem {
