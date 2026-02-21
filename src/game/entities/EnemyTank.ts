@@ -1,5 +1,7 @@
 import { Tank, Direction } from './Tank';
-import { MapSystem } from '../systems/MapSystem';
+import { MapSystem, TileType } from '../systems/MapSystem';
+import { Bullet, BulletDirection } from './Bullet';
+import { BulletPool } from './BulletPool';
 
 export class EnemyTank extends Tank {
     private mapSystem: MapSystem;
@@ -13,7 +15,7 @@ export class EnemyTank extends Tank {
     constructor(x: number, y: number, mapSystem: MapSystem) {
         super(x, y);
         this.mapSystem = mapSystem;
-        this.speed = 64;
+        this.speed = 128;
         this.lastDirectionChange = 0;
         this.directionChangeInterval = this.getRandomDirectionChangeInterval();
         this.lastShotTime = 0;
@@ -80,8 +82,8 @@ export class EnemyTank extends Tank {
     }
 
     checkCollision(): boolean {
-        const tileX = Math.floor(this.x / 32);
-        const tileY = Math.floor(this.y / 32);
+        const tileX = Math.floor(this.x / 64);
+        const tileY = Math.floor(this.y / 64);
         
         if (tileX < 0 || tileX >= 13 || tileY < 0 || tileY >= 13) {
             return true;
@@ -96,7 +98,7 @@ export class EnemyTank extends Tank {
 
         for (const tile of cornerTiles) {
             const tileType = this.mapSystem.getTile(tile.x, tile.y);
-            if (tileType !== undefined && tileType !== null && tileType !== 0) {
+            if (this.isBlocking(tileType)) {
                 return true;
             }
         }
@@ -104,7 +106,53 @@ export class EnemyTank extends Tank {
         return false;
     }
 
+    private isBlocking(tileType: TileType): boolean {
+        return tileType === TileType.Brick || 
+               tileType === TileType.Steel || 
+               tileType === TileType.Water || 
+               tileType === TileType.Base ||
+               tileType === TileType.Eagle;
+    }
+
     private shoot(): void {
+        const bulletPool = BulletPool.getInstance();
+        const bullet = bulletPool.acquire();
+        if (!bullet) return;
+        
+        bullet.x = this.x + 24;
+        bullet.y = this.y + 24;
+        bullet.direction = this.convertDirection(this.direction);
+        bullet.active = true;
+        bullet.isEnemyBullet = true;
+        bullet.powerLevel = this.bulletLevel;
+        bullet.isSteel = this.bulletLevel >= 3;
+        
+        (window as any).bullets.push(bullet);
+        
+        // Fire second shot for level 2+
+        if (this.bulletLevel >= 2) {
+            const bullet2 = bulletPool.acquire();
+            if (bullet2) {
+                bullet2.x = this.x + 24;
+                bullet2.y = this.y + 24;
+                bullet2.direction = this.convertDirection(this.direction);
+                bullet2.active = true;
+                bullet2.isEnemyBullet = true;
+                bullet2.powerLevel = this.bulletLevel;
+                bullet2.isSteel = this.bulletLevel >= 3;
+                (window as any).bullets.push(bullet2);
+            }
+        }
+    }
+
+    private convertDirection(dir: Direction): BulletDirection {
+        switch (dir) {
+            case Direction.Up: return BulletDirection.Up;
+            case Direction.Down: return BulletDirection.Down;
+            case Direction.Left: return BulletDirection.Left;
+            case Direction.Right: return BulletDirection.Right;
+            default: return BulletDirection.Up;
+        }
     }
 
     public isInvincible(): boolean {

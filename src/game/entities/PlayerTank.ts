@@ -1,11 +1,11 @@
 import { Tank, Direction } from './Tank';
-import { MapSystem } from '../systems/MapSystem';
+import { MapSystem, TileType } from '../systems/MapSystem';
 
 export class PlayerTank extends Tank {
     private mapSystem: MapSystem;
 
     constructor(mapSystem: MapSystem) {
-        super(4 * 32, 12 * 32);
+        super(4 * 64, 10 * 64);
         this.mapSystem = mapSystem;
     }
 
@@ -46,8 +46,8 @@ export class PlayerTank extends Tank {
     }
 
     checkCollision(): boolean {
-        const tileX = Math.floor(this.x / 32);
-        const tileY = Math.floor(this.y / 32);
+        const tileX = Math.floor(this.x / 64);
+        const tileY = Math.floor(this.y / 64);
         
         if (tileX < 0 || tileX >= 13 || tileY < 0 || tileY >= 13) {
             return true;
@@ -62,11 +62,18 @@ export class PlayerTank extends Tank {
 
         for (const tile of cornerTiles) {
             const tileType = this.mapSystem.getTile(tile.x, tile.y);
-            if (tileType !== undefined && tileType !== null && tileType !== 0) {
+            if (this.isBlocking(tileType)) {
                 return true;
             }
         }
         
         return false;
+    }
+
+    private isBlocking(tileType: TileType): boolean {
+        return tileType === TileType.Brick || 
+               tileType === TileType.Steel || 
+               tileType === TileType.Water || 
+               tileType === TileType.Base;
     }
 }

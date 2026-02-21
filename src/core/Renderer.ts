@@ -21,7 +21,7 @@ export class Renderer {
     }
 
     clear(): void {
-        this.ctx.fillStyle = '#000000';
+        this.ctx.fillStyle = '#404040';
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
@@ -109,5 +109,42 @@ export class Renderer {
         ctx.fillStyle = '#000000';
         ctx.fillRect(x + size/2 - 2, y + size/4 + 2, 4, size/4);
         ctx.fillRect(x + size/4 + 2, y + size/2 - 2, size/4, 4);
+    }
+
+    drawEagle(x: number, y: number, size: number): void {
+        const ctx = this.ctx;
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(x + size * 0.2, y + size * 0.2, size * 0.6, size * 0.6);
+        ctx.fillStyle = '#FF0000';
+        ctx.beginPath();
+        ctx.moveTo(x + size * 0.5, y + size * 0.15);
+        ctx.lineTo(x + size * 0.35, y + size * 0.4);
+        ctx.lineTo(x + size * 0.5, y + size * 0.35);
+        ctx.lineTo(x + size * 0.65, y + size * 0.4);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    drawForest(x: number, y: number, size: number): void {
+        const ctx = this.ctx;
+        ctx.fillStyle = '#228B22';
+        const treePositions = [
+            { cx: 0.25, cy: 0.25, r: 0.2 },
+            { cx: 0.6, cy: 0.3, r: 0.18 },
+            { cx: 0.4, cy: 0.6, r: 0.22 },
+            { cx: 0.75, cy: 0.7, r: 0.17 },
+            { cx: 0.2, cy: 0.75, r: 0.19 }
+        ];
+        for (const tree of treePositions) {
+            ctx.beginPath();
+            ctx.arc(x + size * tree.cx, y + size * tree.cy, size * tree.r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    drawFloor(x: number, y: number, size: number): void {
+        const ctx = this.ctx;
+        ctx.fillStyle = '#404040';
+        ctx.fillRect(x, y, size, size);
     }
 }

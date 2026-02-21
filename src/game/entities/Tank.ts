@@ -15,17 +15,19 @@ export class Tank {
     health: number;
     scoreValue: number;
     bulletLevel: number;
+    enemyType: string;
 
     constructor(x: number, y: number) {
         this.x = x;
         this.y = y;
         this.direction = Direction.Up;
-        this.speed = 64;
-        this.width = 32;
-        this.height = 32;
+        this.speed = 128;
+        this.width = 64;
+        this.height = 64;
         this.health = 1;
         this.scoreValue = 0;
         this.bulletLevel = 1;
+        this.enemyType = "normal";
     }
 
     update(deltaTime: number): void {
@@ -52,8 +54,8 @@ export class Tank {
     }
 
     checkCollision(mapSystem: any): boolean {
-        const tileX = Math.floor(this.x / 32);
-        const tileY = Math.floor(this.y / 32);
+        const tileX = Math.floor(this.x / 64);
+        const tileY = Math.floor(this.y / 64);
         
         const cornerTiles = [
             {x: tileX, y: tileY},

@@ -7,6 +7,10 @@ export class FastTank extends EnemyTank {
         
         this.speed = 128;
         this.health = 1;
+        this.width = 64;
+        this.height = 64;
         this.scoreValue = 200;
+        this.enemyType = "fast";
+        this.bulletLevel = 1;
     }
 }

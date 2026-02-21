@@ -1,16 +1,15 @@
 import { EnemyTank } from '../entities/EnemyTank';
 import { MapSystem } from '../systems/MapSystem';
 
-export class SuperTank extends EnemyTank {
+export class AntiTankGun extends EnemyTank {
     constructor(x: number, y: number, mapSystem: MapSystem) {
         super(x, y, mapSystem);
-        
-        this.speed = 128;
-        this.health = 4;
+        this.speed = 96;
+        this.health = 1;
         this.width = 64;
         this.height = 64;
-        this.scoreValue = 400;
-        this.enemyType = "super";
-        this.bulletLevel = 3;
+        this.scoreValue = 150;
+        this.enemyType = "anti";
+        this.bulletLevel = 2;
     }
 }

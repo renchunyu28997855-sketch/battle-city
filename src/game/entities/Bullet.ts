@@ -8,31 +8,26 @@ export enum BulletDirection {
 export class Bullet {
   x: number;
   y: number;
-  width: number = 8;
-  height: number = 8;
+  width: number = 16;
+  height: number = 16;
   direction: BulletDirection;
-  speed: number; // pixels per second
+  speed: number;
   active: boolean;
+  isEnemyBullet: boolean = false;
+  powerLevel: number = 0;
+  isSteel: boolean = false;
   private lastFiredTime: number = 0;
-  private fireCooldown: number = 0.3; // seconds
+  private fireCooldown: number = 0.3;
 
   constructor() {
     this.x = 0;
     this.y = 0;
     this.direction = BulletDirection.Up;
-    this.speed = 128; // 4 tiles/second = 128 pixels/second
+    this.speed = 256;
     this.active = false;
   }
 
-  /**
-   * Initialize bullet with position and direction
-   * @param x X position
-   * @param y Y position
-   * @param direction Direction to fire
-   * @param currentTime Current timestamp
-   */
-  init(x: number, y: number, direction: BulletDirection, currentTime: number): boolean {
-    // Check if enough time has passed since last fire
+  init(x: number, y: number, direction: BulletDirection, currentTime: number, powerLevel: number = 0): boolean {
     if (currentTime - this.lastFiredTime < this.fireCooldown) {
       return false;
     }
@@ -42,14 +37,12 @@ export class Bullet {
     this.direction = direction;
     this.active = true;
     this.lastFiredTime = currentTime;
+    this.powerLevel = powerLevel;
+    this.isSteel = powerLevel >= 3;
     
     return true;
   }
 
-  /**
-   * Update bullet position
-   * @param deltaTime Time since last update in seconds
-   */
   update(deltaTime: number): void {
     if (!this.active) return;
 
@@ -68,15 +61,11 @@ export class Bullet {
         break;
     }
 
-    // Deactivate bullet if it goes off screen
-    if (this.x < -8 || this.x > 416 || this.y < -8 || this.y > 416) {
+    if (this.x < -16 || this.x > 832 || this.y < -16 || this.y > 832) {
       this.active = false;
     }
   }
 
-  /**
-   * Reset bullet to initial state
-   */
   reset(): void {
     this.active = false;
     this.x = 0;

@@ -36,15 +36,15 @@ export class CollisionSystem {
    * @param bullet Bullet to check collisions for
    * @param bulletLevel Current bullet level (determines wall destruction ability)
    */
-  handleBulletCollisions(bullet: Bullet, bulletLevel: number): void {
+  handleBulletCollisions(bullet: Bullet): void {
     if (!bullet.active) return;
 
     const bulletX = bullet.x;
     const bulletY = bullet.y;
 
     // Check collision with map tiles
-    const tileX = Math.floor(bulletX / 32);
-    const tileY = Math.floor(bulletY / 32);
+    const tileX = Math.floor(bulletX / 64);
+    const tileY = Math.floor(bulletY / 64);
 
     // Check surrounding tiles for potential collisions
     const checkTiles = [
@@ -59,31 +59,35 @@ export class CollisionSystem {
       
       switch (tileType) {
         case TileType.Brick:
-          // Brick walls are destroyed by any bullet
           this.mapSystem.setTile(tile.x, tile.y, TileType.Empty);
           bullet.active = false;
           return;
           
         case TileType.Steel:
-          // Steel walls are destroyed only by level 3 bullets
-          if (bulletLevel >= 3) {
+          if (bullet.isSteel || bullet.powerLevel >= 2) {
             this.mapSystem.setTile(tile.x, tile.y, TileType.Empty);
           }
-          // For level 1-2, bullet stops and wall remains
+          bullet.active = false;
+          return;
+          
+        case TileType.Water:
           bullet.active = false;
           return;
           
         case TileType.Base:
-          // Bullet hits base - game over
           bullet.active = false;
           return;
           
+        case TileType.Eagle:
+          bullet.active = false;
+          (window as any).eagleDestroyed = true;
+          return;
+          
+        case TileType.Forest:
+        case TileType.Floor:
+        case TileType.Empty:
         default:
-          // Check if bullet is colliding with any other tile type that's not empty
-          if (tileType !== TileType.Empty && tileType !== undefined) {
-            bullet.active = false;
-            return;
-          }
+          break;
       }
     }
   }
@@ -97,8 +101,8 @@ export class CollisionSystem {
   handleBulletTankCollisions(bullet: Bullet, tanks: (Tank | PlayerTank | EnemyTank)[]): boolean {
     if (!bullet.active) return false;
 
-    const bulletWidth = 4;
-    const bulletHeight = 4;
+    const bulletWidth = 8;
+    const bulletHeight = 8;
     const bulletX = bullet.x;
     const bulletY = bullet.y;
 

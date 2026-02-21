@@ -7,6 +7,10 @@ export class NormalTank extends EnemyTank {
         
         this.speed = 64;
         this.health = 1;
+        this.width = 64;
+        this.height = 64;
         this.scoreValue = 100;
+        this.enemyType = "normal";
+        this.bulletLevel = 0;
     }
 }
