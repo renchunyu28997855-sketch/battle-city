@@ -67,6 +67,7 @@ let selectedLevel: number = 0;
 let maxUnlockedLevel: number = 39;
 let lKeyReleased: boolean = true;
 let enterKeyReleased: boolean = true;
+let arrowKeyReleased: boolean = true;
 const TOTAL_LEVELS: number = 40;
 let escKeyReleased: boolean = true;
 
@@ -234,10 +235,19 @@ function update(deltaTime: number) {
         }
         
         if (inputManager.isPressed('ArrowUp') || inputManager.isPressed('KeyW')) {
-            if (selectedLevel > 0) selectedLevel--;
+            if (selectedLevel > 0 && arrowKeyReleased) {
+                selectedLevel--;
+                arrowKeyReleased = false;
+            }
         }
         if (inputManager.isPressed('ArrowDown') || inputManager.isPressed('KeyS')) {
-            if (selectedLevel < TOTAL_LEVELS - 1) selectedLevel++;
+            if (selectedLevel < TOTAL_LEVELS - 1 && arrowKeyReleased) {
+                selectedLevel++;
+                arrowKeyReleased = false;
+            }
+        }
+        if (!inputManager.isPressed('ArrowUp') && !inputManager.isPressed('KeyW') && !inputManager.isPressed('ArrowDown') && !inputManager.isPressed('KeyS')) {
+            arrowKeyReleased = true;
         }
         
         if (inputManager.isPressed('Enter') && enterKeyReleased) {
