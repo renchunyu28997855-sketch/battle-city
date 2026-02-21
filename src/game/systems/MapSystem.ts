@@ -11,7 +11,7 @@ export enum TileType {
 }
 
 export class MapSystem {
-    private grid: TileType[][];
+    public grid: TileType[][];
 
     constructor(mapData?: number[][]) {
         this.grid = Array(13).fill(null).map(() => Array(13).fill(TileType.Floor));

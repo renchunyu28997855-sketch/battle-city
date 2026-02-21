@@ -63,7 +63,9 @@ let enemiesSpawned: number = 0;
 const MAX_ENEMIES_PER_LEVEL: number = 20;
 const MAX_ON_SCREEN_ENEMIES: number = 4;
 let currentLevel: number = 1;
-const TOTAL_LEVELS: number = 50;
+let selectedLevel: number = 0;
+let maxUnlockedLevel: number = 0;
+const TOTAL_LEVELS: number = 40;
 let escKeyReleased: boolean = true;
 
 // 爆炸效果数组
@@ -98,6 +100,18 @@ function resetLevel() {
     playerCanPassWater = false;
     if (playerTank) {
         playerTank.canPassWater = false;
+    }
+}
+
+// Load level by number (1-40)
+function loadLevel(level: number) {
+    const levelIndex = level - 1;
+    if (levelIndex >= 0 && levelIndex < levelData.levels.length) {
+        const config = levelData.levels[levelIndex];
+        const newMapSystem = new MapSystem(config.map_data);
+        mapSystem.grid = newMapSystem.grid;
+        (window as any).MAX_ENEMIES_PER_LEVEL = config.enemy_config.total_count;
+        (window as any).MAX_ON_SCREEN_ENEMIES = config.enemy_config.max_on_screen;
     }
 }
 
@@ -185,8 +199,48 @@ function update(deltaTime: number) {
         gameState = GameState.Playing;
     }
     
+    // Level select handling
+    if (gameState === GameState.Menu) {
+        if (inputManager.isPressed('Enter')) {
+            currentLevel = 1;
+            loadLevel(currentLevel);
+            resetLevel();
+            initPlayerTank();
+            gameState = GameState.Playing;
+        }
+        if (inputManager.isPressed('Digit1')) {
+            selectedLevel = 0;
+            maxUnlockedLevel = Math.min(maxUnlockedLevel + 1, TOTAL_LEVELS);
+            gameState = GameState.LevelSelect;
+        }
+    }
+    
+    if (gameState === GameState.LevelSelect) {
+        if (inputManager.isPressed('Escape')) {
+            gameState = GameState.Menu;
+        }
+        if (inputManager.isPressed('ArrowUp') || inputManager.isPressed('KeyW')) {
+            if (selectedLevel > 0) selectedLevel--;
+        }
+        if (inputManager.isPressed('ArrowDown') || inputManager.isPressed('KeyS')) {
+            if (selectedLevel < TOTAL_LEVELS - 1) selectedLevel++;
+        }
+        if (inputManager.isPressed('Enter')) {
+            if (selectedLevel <= maxUnlockedLevel) {
+                currentLevel = selectedLevel + 1;
+                loadLevel(currentLevel);
+                resetLevel();
+                initPlayerTank();
+                gameState = GameState.Playing;
+            }
+        }
+    }
+    
     switch (gameState) {
         case GameState.Menu:
+            break;
+            
+        case GameState.LevelSelect:
             break;
             
         case GameState.Playing:
@@ -488,6 +542,11 @@ function render() {
     switch (gameState) {
         case GameState.Menu:
             screens.drawMenu();
+            break;
+            
+        case GameState.LevelSelect:
+            const levelNames = levelData.levels.map((l: any) => l.level_name);
+            screens.drawLevelSelect(selectedLevel, maxUnlockedLevel, levelNames);
             break;
             
         case GameState.Playing:

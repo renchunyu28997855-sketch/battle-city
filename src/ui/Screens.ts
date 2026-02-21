@@ -5,6 +5,7 @@ import { Renderer } from '../core/Renderer';
  */
 export enum GameState {
     Menu,
+    LevelSelect,
     Playing,
     Paused,
     GameOver,
@@ -43,23 +44,88 @@ export class Screens {
         this.renderer.drawText('BATTLE CITY', 400, 125, 'white', 32);
         
         // Draw start instruction with steel background and black text
-        this.renderer.drawRect(200, 250, 400, 50, 'steel');
-        this.renderer.drawRect(210, 260, 380, 30, 'black');
-        this.renderer.drawText('按 ENTER 开始游戏', 400, 275, 'white', 24);
+        this.renderer.drawRect(200, 200, 400, 50, 'steel');
+        this.renderer.drawRect(210, 210, 380, 30, 'black');
+        this.renderer.drawText('按 ENTER 开始游戏', 400, 225, 'white', 24);
+        
+        // Draw level select instruction
+        this.renderer.drawRect(200, 270, 400, 50, 'steel');
+        this.renderer.drawRect(210, 280, 380, 30, 'black');
+        this.renderer.drawText('按 1 选择关卡', 400, 295, 'white', 24);
         
         // Draw instructions with steel background and black text
-        this.renderer.drawRect(200, 350, 400, 200, 'steel');
-        this.renderer.drawRect(210, 360, 380, 180, 'black');
+        this.renderer.drawRect(200, 350, 400, 180, 'steel');
+        this.renderer.drawRect(210, 360, 380, 160, 'black');
         this.renderer.drawText('操作说明:', 400, 380, 'white', 24);
         this.renderer.drawText('WASD 键移动', 400, 410, 'white', 20);
         this.renderer.drawText('空格键射击', 400, 435, 'white', 20);
         this.renderer.drawText('ESC 键暂停', 400, 460, 'white', 20);
         this.renderer.drawText('目标: 击败所有坦克', 400, 485, 'white', 20);
-        this.renderer.drawText('保护你的基地', 400, 510, 'white', 20);
         
         // Draw tank decoration
         this.renderer.drawTank(300, 500, 40, 'up', 'green');
         this.renderer.drawTank(500, 500, 40, 'down', 'green');
+    }
+    
+    /**
+     * Draw the level selection screen
+     */
+    drawLevelSelect(selectedLevel: number, maxUnlockedLevel: number, levelNames: string[]): void {
+        this.renderer.clear();
+        
+        // Draw background
+        this.renderer.drawRect(0, 0, 832, 832, 'black');
+        
+        // Draw title
+        this.renderer.drawRect(200, 20, 432, 50, 'orange');
+        this.renderer.drawRect(210, 30, 412, 30, 'black');
+        this.renderer.drawText('选择关卡', 416, 45, 'white', 28);
+        
+        // Draw navigation hint
+        this.renderer.drawRect(200, 760, 432, 40, 'steel');
+        this.renderer.drawRect(210, 770, 412, 20, 'black');
+        this.renderer.drawText('↑↓ 选择 | ENTER 确认 | ESC 返回', 416, 782, 'white', 16);
+        
+        // Calculate visible page (8 levels per page)
+        const page = Math.floor(selectedLevel / 8);
+        const startLevel = page * 8;
+        const endLevel = Math.min(startLevel + 8, 40);
+        
+        // Draw levels
+        for (let i = startLevel; i < endLevel; i++) {
+            const levelIndex = i;
+            const row = i - startLevel;
+            const x = 100;
+            const y = 100 + row * 75;
+            const width = 632;
+            const height = 65;
+            
+            // Highlight selected level
+            const isSelected = levelIndex === selectedLevel;
+            const isUnlocked = levelIndex < maxUnlockedLevel;
+            
+            if (isSelected) {
+                this.renderer.drawRect(x - 10, y - 5, width + 20, height + 10, 'orange');
+            } else if (isUnlocked) {
+                this.renderer.drawRect(x, y, width, height, 'steel');
+            } else {
+                this.renderer.drawRect(x, y, width, height, '#333');
+            }
+            
+            this.renderer.drawRect(x + 5, y + 5, width - 10, height - 10, 'black');
+            
+            // Level number and name
+            const statusText = isUnlocked ? '✓ 已通关' : (levelIndex === 0 ? '✓ 可选' : '🔒 锁定');
+            const levelText = `第 ${levelIndex + 1} 关: ${levelNames[levelIndex] || '未知'}`;
+            
+            this.renderer.drawText(levelText, x + 20, y + 25, isSelected ? 'orange' : (isUnlocked ? 'white' : '#666'), 20);
+            this.renderer.drawText(statusText, x + 450, y + 25, isUnlocked ? '#4CAF50' : '#666', 18);
+        }
+        
+        // Draw page indicator
+        const totalPages = Math.ceil(40 / 8);
+        const currentPage = page + 1;
+        this.renderer.drawText(`第 ${currentPage}/${totalPages} 页`, 416, 740, 'white', 18);
     }
 
     /**
