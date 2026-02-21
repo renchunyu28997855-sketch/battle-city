@@ -18,12 +18,15 @@ export class Bullet {
   isSteel: boolean = false;
   private lastFiredTime: number = 0;
   private fireCooldown: number = 0.3;
+  
+  // 子弹速度档位: 1=最慢, 2=中等, 3=最快
+  private static readonly SPEED_LEVELS = [128, 192, 256];
 
   constructor() {
     this.x = 0;
     this.y = 0;
     this.direction = BulletDirection.Up;
-    this.speed = 256;
+    this.speed = Bullet.SPEED_LEVELS[0]; // 默认最慢档位
     this.active = false;
   }
 
@@ -39,6 +42,10 @@ export class Bullet {
     this.lastFiredTime = currentTime;
     this.powerLevel = powerLevel;
     this.isSteel = powerLevel >= 3;
+    
+    // 根据 powerLevel 设置速度档位 (0->1, 1->1, 2->2, 3->3)
+    const speedIndex = Math.min(Math.max(powerLevel, 0), 2);
+    this.speed = Bullet.SPEED_LEVELS[speedIndex];
     
     return true;
   }

@@ -91,12 +91,11 @@ export class SoundManager {
         osc.stop(this.audioCtx.currentTime + 0.1);
     }
     
-    // Explosion sound
+    // Explosion sound - 高频爆炸音
     playExplosion(): void {
         this.initAudio();
         if (!this.audioCtx) return;
         
-        // White noise for explosion
         const bufferSize = this.audioCtx.sampleRate * 0.3;
         const buffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
         const data = buffer.getChannelData(0);
@@ -111,16 +110,16 @@ export class SoundManager {
         const gain = this.audioCtx.createGain();
         const filter = this.audioCtx.createBiquadFilter();
         
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(1000, this.audioCtx.currentTime);
-        filter.frequency.exponentialRampToValueAtTime(100, this.audioCtx.currentTime + 0.3);
+        filter.type = 'highpass';
+        filter.frequency.setValueAtTime(2000, this.audioCtx.currentTime);
+        filter.frequency.exponentialRampToValueAtTime(500, this.audioCtx.currentTime + 0.25);
         
         noise.connect(filter);
         filter.connect(gain);
         gain.connect(this.audioCtx.destination);
         
-        gain.gain.setValueAtTime(0.5, this.audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.6, this.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.25);
         
         noise.start(this.audioCtx.currentTime);
     }
