@@ -20,7 +20,7 @@ export class Bullet {
   private fireCooldown: number = 0.3;
   
   // 子弹速度档位: 1=最慢, 2=中等, 3=最快
-  private static readonly SPEED_LEVELS = [128, 192, 256];
+  private static readonly SPEED_LEVELS = [192, 256, 320];
 
   constructor() {
     this.x = 0;

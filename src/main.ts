@@ -49,6 +49,16 @@ let currentLevel: number = 1;
 const TOTAL_LEVELS: number = 50;
 let escKeyReleased: boolean = true;
 
+// 爆炸效果数组
+interface Explosion {
+    x: number;
+    y: number;
+    size: number;
+    startTime: number;
+}
+let explosions: Explosion[] = [];
+const EXPLOSION_DURATION = 500; // 毫秒
+
 // Initialize player tank
 function initPlayerTank() {
     playerTank = new PlayerTank(mapSystem);
@@ -93,28 +103,38 @@ function update(deltaTime: number) {
             
         case GameState.Playing:
             if (playerTank) {
+                let moving = false;
                 if (inputManager.isPressed('ArrowUp') || inputManager.isPressed('KeyW')) {
                     playerTank.move(Direction.Up);
+                    moving = true;
                 }
                 if (inputManager.isPressed('ArrowDown') || inputManager.isPressed('KeyS')) {
                     playerTank.move(Direction.Down);
+                    moving = true;
                 }
                 if (inputManager.isPressed('ArrowLeft') || inputManager.isPressed('KeyA')) {
                     playerTank.move(Direction.Left);
+                    moving = true;
                 }
                 if (inputManager.isPressed('ArrowRight') || inputManager.isPressed('KeyD')) {
                     playerTank.move(Direction.Right);
+                    moving = true;
+                }
+                
+                // Only update position when moving
+                if (moving) {
+                    playerTank.update(deltaTime);
                 }
                 
                 // Space bar to shoot (with cooldown)
                 const now = Date.now();
-                if (inputManager.isPressed('Space') && now - lastShotTime > 300) {
+                if (inputManager.isPressed('Space') && now - lastShotTime > 900) {
                     lastShotTime = now;
                     if (!bulletPool) {
                         bulletPool = BulletPool.getInstance();
                     }
                     const bullet = bulletPool.acquire();
-                    if (bullet) {
+                    if (bullet && playerTank) {
                         bullet.x = playerTank.x + 24;
                         bullet.y = playerTank.y + 24;
                         bullet.direction = playerTank.direction as unknown as BulletDirection;
@@ -123,8 +143,6 @@ function update(deltaTime: number) {
                         soundManager.playShoot();
                     }
                 }
-                
-                playerTank.update(deltaTime);
                 
                 // Check player-enemy collision - block like wall
                 if (playerTank) {
@@ -145,11 +163,9 @@ function update(deltaTime: number) {
                 }
             }
             
-            // Spawn enemies every 3 seconds, max 20 per level, max 4 on screen
+            // Spawn enemies immediately after a kill (90 version), max 20 per level, max 4 on screen
             enemySpawnTimer += deltaTime;
-            if (enemySpawnTimer >= 3 && enemiesSpawned < MAX_ENEMIES_PER_LEVEL) {
-                enemySpawnTimer = 0;
-                
+            if (enemiesSpawned < MAX_ENEMIES_PER_LEVEL && enemies.length < MAX_ON_SCREEN_ENEMIES) {
                 const enemyTypes = [ArmoredCar, LightTank, AntiTankGun, HeavyTank, NormalTank];
                 const EnemyClass = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
                 const newEnemy = new EnemyClass(0, 0, mapSystem);
@@ -165,6 +181,7 @@ function update(deltaTime: number) {
                 newEnemy.direction = Direction.Down;
                 enemies.push(newEnemy);
                 enemiesSpawned++;
+                enemySpawnTimer = 0; // Reset immediately after spawning
             }
             
             const activeEnemies = enemies.filter(e => e.active).length;
@@ -197,7 +214,7 @@ function update(deltaTime: number) {
                     const wasActive = bullets[i].active;
                     collisionSystem.handleBulletCollisions(bullets[i]);
                     if (wasActive && !bullets[i].active) {
-                        soundManager.playExplosion();
+                        // 子弹击中墙壁时不播放爆炸声
                     }
                 }
                 
@@ -220,6 +237,12 @@ function update(deltaTime: number) {
                         if (e.health <= 0) {
                             e.active = false;
                             soundManager.playExplosion();
+                            explosions.push({
+                                x: e.x,
+                                y: e.y,
+                                size: e.width,
+                                startTime: Date.now()
+                            });
                         }
                         break;
                     }
@@ -236,6 +259,7 @@ function update(deltaTime: number) {
                         playerTank.health--;
                         soundManager.playHit();
                         if (playerTank.health <= 0) {
+                            soundManager.playExplosion();
                             gameState = GameState.GameOver;
                         }
                     }
@@ -253,7 +277,7 @@ function update(deltaTime: number) {
                                 b1.y + b1.height > b2.y) {
                                 b1.active = false;
                                 b2.active = false;
-                                soundManager.playExplosion();
+                                // 子弹相撞时不播放爆炸声
                                 break;
                             }
                         }
@@ -368,6 +392,17 @@ function render() {
             renderer.drawText(`敌人: ${remainingEnemies}`, 750, 60, 'white', 20);
             
             drawForestOverlay();
+            
+            // Draw explosions
+            const now = Date.now();
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                const exp = explosions[i];
+                if (now - exp.startTime < EXPLOSION_DURATION) {
+                    renderer.drawExplosion(exp.x, exp.y, exp.size);
+                } else {
+                    explosions.splice(i, 1);
+                }
+            }
             
             break;
             
