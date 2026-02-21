@@ -41,8 +41,8 @@
         "respawn_invincible_time": 3.0
       },
       "item_config": {
-        "spawn_probability": 0,
-        "allowed_items": []
+        "spawn_probability": 0.1,
+        "allowed_items": ["bomb", "clock", "shovel", "star", "tank", "helmet"]
       },
       "special_rules": ["tutorial"],
       "clear_reward": {
@@ -59,15 +59,30 @@
         "height": 13,
         "tile_size": 64
       },
+      "map_data": [
+        [0,1,1,1,1,1,1,1,1,1,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [2,1,1,1,1,1,1,1,1,1,1,1,2],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,0,1,5,1,1,1,1,1,1]
+      ],
       "enemy_config": {
         "total_count": 20,
         "max_on_screen": 4,
         "spawn_interval": 3.0,
         "types": {
-          "armor": 0.2,
-          "light": 0.3,
+          "armor": 0.3,
+          "light": 0.35,
           "medium": 0.3,
-          "heavy": 0.2
+          "heavy": 0.05
         }
       },
       "player_config": {
@@ -81,8 +96,408 @@
       },
       "special_rules": [],
       "clear_reward": {
-        "score_bonus": 1500,
+        "score_bonus": 1200,
         "extra_life": false
+      }
+    },
+    {
+      "level_id": 3,
+      "level_name": "战术演练",
+      "difficulty": 3,
+      "map_config": {
+        "width": 13,
+        "height": 13,
+        "tile_size": 64
+      },
+      "map_data": [
+        [0,1,1,1,1,1,1,1,1,1,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [2,1,1,1,1,1,1,1,1,1,1,1,2],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,0,1,5,1,1,1,1,1,1]
+      ],
+      "enemy_config": {
+        "total_count": 22,
+        "max_on_screen": 4,
+        "spawn_interval": 2.9,
+        "types": {
+          "armor": 0.25,
+          "light": 0.35,
+          "medium": 0.3,
+          "heavy": 0.1
+        }
+      },
+      "player_config": {
+        "initial_lives": 3,
+        "initial_level": 1,
+        "respawn_invincible_time": 3.0
+      },
+      "item_config": {
+        "spawn_probability": 0.12,
+        "allowed_items": ["bomb", "clock", "shovel", "star", "tank", "helmet"]
+      },
+      "special_rules": [],
+      "clear_reward": {
+        "score_bonus": 1400,
+        "extra_life": false
+      }
+    },
+    {
+      "level_id": 4,
+      "level_name": "火力全开",
+      "difficulty": 4,
+      "map_config": {
+        "width": 13,
+        "height": 13,
+        "tile_size": 64
+      },
+      "map_data": [
+        [0,1,1,1,1,1,1,1,1,1,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [2,1,1,1,1,1,1,1,1,1,1,1,2],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,0,1,5,1,1,1,1,1,1]
+      ],
+      "enemy_config": {
+        "total_count": 24,
+        "max_on_screen": 4,
+        "spawn_interval": 2.7,
+        "types": {
+          "armor": 0.2,
+          "light": 0.35,
+          "medium": 0.3,
+          "heavy": 0.15
+        }
+      },
+      "player_config": {
+        "initial_lives": 3,
+        "initial_level": 1,
+        "respawn_invincible_time": 3.0
+      },
+      "item_config": {
+        "spawn_probability": 0.13,
+        "allowed_items": ["bomb", "clock", "shovel", "star", "tank", "helmet", "boat", "gun"]
+      },
+      "special_rules": [],
+      "clear_reward": {
+        "score_bonus": 1600,
+        "extra_life": false
+      }
+    },
+    {
+      "level_id": 5,
+      "level_name": "突破防线",
+      "difficulty": 5,
+      "map_config": {
+        "width": 13,
+        "height": 13,
+        "tile_size": 64
+      },
+      "map_data": [
+        [0,1,1,1,1,1,1,1,1,1,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [2,1,1,1,1,1,1,1,1,1,1,1,2],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,0,1,5,1,1,1,1,1,1]
+      ],
+      "enemy_config": {
+        "total_count": 26,
+        "max_on_screen": 4,
+        "spawn_interval": 2.6,
+        "types": {
+          "armor": 0.2,
+          "light": 0.3,
+          "medium": 0.3,
+          "heavy": 0.2
+        }
+      },
+      "player_config": {
+        "initial_lives": 3,
+        "initial_level": 2,
+        "respawn_invincible_time": 3.0
+      },
+      "item_config": {
+        "spawn_probability": 0.14,
+        "allowed_items": ["bomb", "clock", "shovel", "star", "tank", "helmet", "boat", "gun"]
+      },
+      "special_rules": [],
+      "clear_reward": {
+        "score_bonus": 1800,
+        "extra_life": false
+      }
+    },
+    {
+      "level_id": 6,
+      "level_name": "钢铁洪流",
+      "difficulty": 6,
+      "map_config": {
+        "width": 13,
+        "height": 13,
+        "tile_size": 64
+      },
+      "map_data": [
+        [0,1,1,1,1,1,1,1,1,1,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [2,1,1,1,1,1,1,1,1,1,1,1,2],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,0,1,5,1,1,1,1,1,1]
+      ],
+      "enemy_config": {
+        "total_count": 28,
+        "max_on_screen": 4,
+        "spawn_interval": 2.5,
+        "types": {
+          "armor": 0.2,
+          "light": 0.25,
+          "medium": 0.3,
+          "heavy": 0.25
+        }
+      },
+      "player_config": {
+        "initial_lives": 3,
+        "initial_level": 2,
+        "respawn_invincible_time": 3.0
+      },
+      "item_config": {
+        "spawn_probability": 0.15,
+        "allowed_items": ["bomb", "clock", "shovel", "star", "tank", "helmet", "boat", "gun"]
+      },
+      "special_rules": [],
+      "clear_reward": {
+        "score_bonus": 2000,
+        "extra_life": false
+      }
+    },
+    {
+      "level_id": 7,
+      "level_name": "战争地带",
+      "difficulty": 7,
+      "map_config": {
+        "width": 13,
+        "height": 13,
+        "tile_size": 64
+      },
+      "map_data": [
+        [0,1,1,1,1,1,1,1,1,1,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [2,1,1,1,1,1,1,1,1,1,1,1,2],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,0,1,5,1,1,1,1,1,1]
+      ],
+      "enemy_config": {
+        "total_count": 30,
+        "max_on_screen": 4,
+        "spawn_interval": 2.4,
+        "types": {
+          "armor": 0.15,
+          "light": 0.25,
+          "medium": 0.3,
+          "heavy": 0.3
+        }
+      },
+      "player_config": {
+        "initial_lives": 4,
+        "initial_level": 2,
+        "respawn_invincible_time": 3.0
+      },
+      "item_config": {
+        "spawn_probability": 0.15,
+        "allowed_items": ["bomb", "clock", "shovel", "star", "tank", "helmet", "boat", "gun"]
+      },
+      "special_rules": [],
+      "clear_reward": {
+        "score_bonus": 2200,
+        "extra_life": false
+      }
+    },
+    {
+      "level_id": 8,
+      "level_name": "最终考验",
+      "difficulty": 8,
+      "map_config": {
+        "width": 13,
+        "height": 13,
+        "tile_size": 64
+      },
+      "map_data": [
+        [0,1,1,1,1,1,1,1,1,1,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [2,1,1,1,1,1,1,1,1,1,1,1,2],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,0,1,5,1,1,1,1,1,1]
+      ],
+      "enemy_config": {
+        "total_count": 32,
+        "max_on_screen": 4,
+        "spawn_interval": 2.3,
+        "types": {
+          "armor": 0.15,
+          "light": 0.2,
+          "medium": 0.3,
+          "heavy": 0.35
+        }
+      },
+      "player_config": {
+        "initial_lives": 4,
+        "initial_level": 2,
+        "respawn_invincible_time": 3.0
+      },
+      "item_config": {
+        "spawn_probability": 0.16,
+        "allowed_items": ["bomb", "clock", "shovel", "star", "tank", "helmet", "boat", "gun"]
+      },
+      "special_rules": [],
+      "clear_reward": {
+        "score_bonus": 2400,
+        "extra_life": false
+      }
+    },
+    {
+      "level_id": 9,
+      "level_name": "绝境求生",
+      "difficulty": 9,
+      "map_config": {
+        "width": 13,
+        "height": 13,
+        "tile_size": 64
+      },
+      "map_data": [
+        [0,1,1,1,1,1,1,1,1,1,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [2,1,1,1,1,1,1,1,1,1,1,1,2],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,0,1,5,1,1,1,1,1,1]
+      ],
+      "enemy_config": {
+        "total_count": 34,
+        "max_on_screen": 4,
+        "spawn_interval": 2.2,
+        "types": {
+          "armor": 0.1,
+          "light": 0.2,
+          "medium": 0.3,
+          "heavy": 0.4
+        }
+      },
+      "player_config": {
+        "initial_lives": 4,
+        "initial_level": 2,
+        "respawn_invincible_time": 3.0
+      },
+      "item_config": {
+        "spawn_probability": 0.17,
+        "allowed_items": ["bomb", "clock", "shovel", "star", "tank", "helmet", "boat", "gun"]
+      },
+      "special_rules": [],
+      "clear_reward": {
+        "score_bonus": 2600,
+        "extra_life": false
+      }
+    },
+    {
+      "level_id": 10,
+      "level_name": "王者之战",
+      "difficulty": 10,
+      "map_config": {
+        "width": 13,
+        "height": 13,
+        "tile_size": 64
+      },
+      "map_data": [
+        [0,1,1,1,1,1,1,1,1,1,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [2,1,1,1,1,1,1,1,1,1,1,1,2],
+        [1,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,0,1,5,1,1,1,1,1,1]
+      ],
+      "enemy_config": {
+        "total_count": 36,
+        "max_on_screen": 4,
+        "spawn_interval": 2.1,
+        "types": {
+          "armor": 0.1,
+          "light": 0.15,
+          "medium": 0.3,
+          "heavy": 0.45
+        }
+      },
+      "player_config": {
+        "initial_lives": 5,
+        "initial_level": 2,
+        "respawn_invincible_time": 3.0
+      },
+      "item_config": {
+        "spawn_probability": 0.18,
+        "allowed_items": ["bomb", "clock", "shovel", "star", "tank", "helmet", "boat", "gun"]
+      },
+      "special_rules": ["boss"],
+      "clear_reward": {
+        "score_bonus": 3000,
+        "extra_life": true
       }
     }
   ]
