@@ -12,9 +12,22 @@ export enum TileType {
 export class MapSystem {
     private grid: TileType[][];
 
-    constructor() {
+    constructor(mapData?: number[][]) {
         this.grid = Array(13).fill(null).map(() => Array(13).fill(TileType.Floor));
         
+        if (mapData && mapData.length > 0) {
+            for (let y = 0; y < 13 && y < mapData.length; y++) {
+                for (let x = 0; x < 13 && x < mapData[y].length; x++) {
+                    this.grid[y][x] = mapData[y][x] as TileType;
+                }
+            }
+            return;
+        }
+        
+        this.setupDefaultMap();
+    }
+
+    private setupDefaultMap(): void {
         // Place eagle at bottom center (column 6, row 12)
         this.grid[12][6] = TileType.Eagle;
         

@@ -45,6 +45,7 @@ export interface LevelData {
     level_name: string;
     difficulty: number;
     map_config: MapConfig;
+    map_data?: number[][];
     map_tiles?: TileData[];
     enemy_config: EnemyConfig;
     player_config: PlayerConfig;

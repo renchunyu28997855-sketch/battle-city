@@ -26,11 +26,13 @@ import { CollisionSystem } from './game/systems/CollisionSystem';
 import { SoundManager } from './core/SoundManager';
 import { PowerUpManager, PowerUpType } from './game/systems/PowerUpManager';
 import { Vector2D } from './game/utils/Vector2D';
+import levelData from './data/levels.json';
 
-// Initialize core systems
+const currentLevelConfig = levelData.levels[0];
+
 const inputManager = new InputManager();
 const renderer = new Renderer(canvas);
-const mapSystem = new MapSystem();
+const mapSystem = new MapSystem(currentLevelConfig.map_data);
 const screens = new Screens(renderer);
 const collisionSystem = new CollisionSystem(mapSystem);
 const soundManager = SoundManager.getInstance();
