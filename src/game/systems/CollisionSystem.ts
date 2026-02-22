@@ -41,71 +41,87 @@ export class CollisionSystem {
    */
   handleBulletCollisions(bullet: Bullet): void {
     if (!bullet.active) return;
-
-    const bulletCenterX = bullet.x + bullet.width / 2;
-    const bulletCenterY = bullet.y + bullet.height / 2;
     
-    let tilesDestroyed = 0;
-    const maxBricksToDestroy = bullet.brickPenetrationCount || 1;
+    // 获取子弹的穿透配置
+    const brickPenetrationCount = bullet.brickPenetrationCount;
+    const maxBricksToDestroy = (brickPenetrationCount !== undefined && brickPenetrationCount !== null) ? brickPenetrationCount : 1;
     const canPenetrateBrick = bullet.canPenetrateBrick;
+    const powerLevel = bullet.powerLevel;
     
-    // Determine direction to check for multiple tiles
-    let dx = 0, dy = 0;
-    switch (bullet.direction) {
-      case 0: dy = -1; break; // Up
-      case 1: dy = 1; break;  // Down
-      case 2: dx = -1; break; // Left
-      case 3: dx = 1; break;  // Right
-    }
+    // 调试日志
+    console.log(`[Bullet Collision] powerLevel=${powerLevel}, brickPenetrationCount=${brickPenetrationCount}, maxBricksToDestroy=${maxBricksToDestroy}, canPenetrateBrick=${canPenetrateBrick}`);
     
-    // Check current tile and tiles in bullet direction
-    for (let i = 0; i <= maxBricksToDestroy; i++) {
-      const checkX = Math.floor((bulletCenterX + dx * i * 64) / 64);
-      const checkY = Math.floor((bulletCenterY + dy * i * 64) / 64);
-      
-      const tileType = this.mapSystem.getTile(checkX, checkY);
-      
-      switch (tileType) {
-        case TileType.Brick:
-          this.mapSystem.setTile(checkX, checkY, TileType.Empty);
-          tilesDestroyed++;
-          if (!canPenetrateBrick || tilesDestroyed >= maxBricksToDestroy) {
+    const TILE_SIZE = 64;
+    
+    // 计算子弹覆盖的矩形范围(像素坐标)
+    const bulletLeft = bullet.x;
+    const bulletTop = bullet.y;
+    const bulletRight = bullet.x + bullet.width;
+    const bulletBottom = bullet.y + bullet.height;
+    
+    // 转换为瓦片坐标范围
+    const minTileX = Math.floor(bulletLeft / TILE_SIZE);
+    const maxTileX = Math.floor((bulletRight - 1) / TILE_SIZE);
+    const minTileY = Math.floor(bulletTop / TILE_SIZE);
+    const maxTileY = Math.floor((bulletBottom - 1) / TILE_SIZE);
+    
+    // 记录已破坏的砖块数量
+    let bricksDestroyed = 0;
+    
+    // 按瓦片坐标顺序处理(先Y后X)
+    for (let tileY = minTileY; tileY <= maxTileY; tileY++) {
+      for (let tileX = minTileX; tileX <= maxTileX; tileX++) {
+        // 已经打够指定数量立即停止
+        if (bricksDestroyed >= maxBricksToDestroy) {
+          bullet.active = false;
+          return;
+        }
+        
+        const tileType = this.mapSystem.getTile(tileX, tileY);
+        
+        switch (tileType) {
+          case TileType.Brick:
+            // 破坏砖块
+            this.mapSystem.setTile(tileX, tileY, TileType.Empty);
+            bricksDestroyed++;
+            
+            // 打够数量立即停止
+            if (bricksDestroyed >= maxBricksToDestroy) {
+              bullet.active = false;
+              return;
+            }
+            // 不能穿透砖块则停止
+            if (!canPenetrateBrick) {
+              bullet.active = false;
+              return;
+            }
+            break;
+            
+          case TileType.Steel:
+            // 只有 powerLevel >= 3 才能穿透钢铁
+            if (bullet.isSteel) {
+              this.mapSystem.setTile(tileX, tileY, TileType.Empty);
+            }
             bullet.active = false;
-            return;
-          }
-          break;
-          
-        case TileType.Steel:
-          // 只有 powerLevel >= 3 才能穿透钢铁
-          if (bullet.isSteel) {
-            this.mapSystem.setTile(checkX, checkY, TileType.Empty);
-            bullet.active = false;
-            return;
-          } else {
             this.soundManager.playMetalHit();
-            bullet.active = false;
             return;
-          }
-          
-        case TileType.Water:
-          bullet.active = false;
-          return;
-          
-        case TileType.Base:
-          bullet.active = false;
-          return;
-          
-        case TileType.Eagle:
-          bullet.active = false;
-          (window as any).eagleDestroyed = true;
-          return;
-          
-        case TileType.Forest:
-        case TileType.Floor:
-        case TileType.Empty:
-        default:
-          // Continue checking in direction
-          break;
+            
+          case TileType.Water:
+          case TileType.Base:
+          case TileType.Eagle:
+            bullet.active = false;
+            if (tileType === TileType.Eagle) {
+              (window as any).eagleDestroyed = true;
+            }
+            return;
+            
+          case TileType.Forest:
+          case TileType.Floor:
+          case TileType.Empty:
+          default:
+            // 不影响,继续
+            break;
+        }
       }
     }
   }
@@ -119,8 +135,8 @@ export class CollisionSystem {
   handleBulletTankCollisions(bullet: Bullet, tanks: (Tank | PlayerTank | EnemyTank)[]): boolean {
     if (!bullet.active) return false;
 
-    const bulletWidth = 8;
-    const bulletHeight = 8;
+    const bulletWidth = bullet.width;
+    const bulletHeight = bullet.height;
     const bulletX = bullet.x;
     const bulletY = bullet.y;
 

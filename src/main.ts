@@ -70,6 +70,7 @@ let enterKeyReleased: boolean = true;
 let arrowKeyReleased: boolean = true;
 const TOTAL_LEVELS: number = 40;
 let escKeyReleased: boolean = true;
+let wasMoving: boolean = false;  // 记录上一帧是否在移动
 
 // 爆炸效果数组
 interface Explosion {
@@ -200,9 +201,10 @@ function update(deltaTime: number) {
         escKeyReleased = true;
     }
     
-    // R to restart
+    // R to restart (full game reset)
     if (inputManager.isPressed('KeyR') && (gameState === GameState.GameOver || gameState === GameState.LevelComplete)) {
         currentLevel = 1;
+        loadLevel(currentLevel);
         resetLevel();
         initPlayerTank();
         gameState = GameState.Playing;
@@ -302,6 +304,12 @@ function update(deltaTime: number) {
                 if (moving) {
                     playerTank.update(deltaTime);
                 }
+                
+                // 停止移动时自动对齐到网格
+                if (wasMoving && !moving && playerTank) {
+                    playerTank.snapToGridWhenStopped();
+                }
+                wasMoving = moving;
                 
                 // Space bar to shoot (with cooldown based on bullet level)
                 const now = Date.now();
@@ -447,8 +455,6 @@ function update(deltaTime: number) {
                 }
             }
             
-            const activeEnemies = enemies.filter(e => e.active).length;
-            
             // Check win/lose conditions
             if ((window as any).eagleDestroyed) {
                 gameState = GameState.GameOver;
@@ -458,9 +464,11 @@ function update(deltaTime: number) {
                 gameState = GameState.GameOver;
             }
             
-            // Check level complete (all enemies defeated)
+            // Check level complete (all enemies spawned AND all killed)
             const maxEnemies = (window as any).MAX_ENEMIES_PER_LEVEL || MAX_ENEMIES_PER_LEVEL;
-            if (enemiesSpawned >= maxEnemies && activeEnemies === 0) {
+            const allEnemiesSpawned = enemiesSpawned >= maxEnemies;
+            const allEnemiesKilled = enemies.length === 0;
+            if (allEnemiesSpawned && allEnemiesKilled) {
                 if (currentLevel >= TOTAL_LEVELS) {
                     gameState = GameState.LevelComplete;
                 } else {
@@ -492,6 +500,12 @@ function update(deltaTime: number) {
                         b.x + b.width > e.x &&
                         b.y < e.y + e.height &&
                         b.y + b.height > e.y) {
+                        
+                        // 敌人4秒无敌期间不受到伤害
+                        if ((e as any).isInvincible && (e as any).isInvincible()) {
+                            b.active = false;
+                            break;
+                        }
                         
                         const isPenetration = b.canPenetrateTanks && b.powerLevel >= 3;
                         
@@ -681,7 +695,8 @@ function render() {
             renderer.drawText(`关卡: ${currentLevel}`, 750, 30, 'white', 20);
             
             // Draw HUD - Remaining enemies
-            const remainingEnemies = MAX_ENEMIES_PER_LEVEL - enemiesSpawned + enemies.filter(e => e.active).length;
+            const maxEnemiesHUD = (window as any).MAX_ENEMIES_PER_LEVEL || MAX_ENEMIES_PER_LEVEL;
+            const remainingEnemies = Math.max(0, maxEnemiesHUD - enemiesSpawned);
             renderer.drawText(`敌人: ${remainingEnemies}`, 750, 60, 'white', 20);
             
             // Draw power-ups

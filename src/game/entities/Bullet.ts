@@ -98,5 +98,12 @@ export class Bullet {
     this.active = false;
     this.x = 0;
     this.y = 0;
+    // 重置所有穿透属性,避免复用时属性残留
+    this.canPenetrateBrick = false;
+    this.canPenetrateSteel = false;
+    this.isSteel = false;
+    this.brickPenetrationCount = 1;
+    this.canPenetrateTanks = false;
+    this.powerLevel = 0;
   }
 }

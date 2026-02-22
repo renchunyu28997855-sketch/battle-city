@@ -26,7 +26,8 @@ export class EnemyTank extends Tank {
     }
 
     update(deltaTime: number): void {
-        if (this.isSpawnInvincible && Date.now() - this.spawnTime > 3000) {
+        // 敌人出生后4秒内无敌,避免被压住灭掉
+        if (this.isSpawnInvincible && Date.now() - this.spawnTime > 4000) {
             this.isSpawnInvincible = false;
         }
         
