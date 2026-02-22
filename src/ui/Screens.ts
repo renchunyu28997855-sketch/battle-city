@@ -5,11 +5,20 @@ import { Renderer } from '../core/Renderer';
  */
 export enum GameState {
     Menu,
+    ModeSelect,
     LevelSelect,
     Playing,
     Paused,
     GameOver,
     LevelComplete
+}
+
+/**
+ * Game mode - single player or two player
+ */
+export enum GameMode {
+    Single,
+    TwoPlayer
 }
 
 /**
@@ -66,6 +75,51 @@ export class Screens {
         this.renderer.drawTank(300, 500, 40, 'up', 'green');
         this.renderer.drawTank(500, 500, 40, 'down', 'green');
     }
+
+    /**
+     * Draw the mode selection screen (1P or 2P)
+     */
+    drawModeSelect(): void {
+        this.renderer.clear();
+        
+        // Draw decorative brick border
+        for (let i = 0; i < 10; i++) {
+            this.renderer.drawBrick(180 + i * 40, 80, 40);
+            this.renderer.drawBrick(180 + i * 40, 520, 40);
+        }
+        for (let i = 0; i < 12; i++) {
+            this.renderer.drawBrick(180, 80 + i * 40, 40);
+            this.renderer.drawBrick(780, 80 + i * 40, 40);
+        }
+        
+        // Draw title with orange background and black text
+        this.renderer.drawRect(200, 100, 400, 50, 'orange');
+        this.renderer.drawRect(210, 110, 380, 30, 'black');
+        this.renderer.drawText('选择模式', 400, 125, 'white', 32);
+        
+        // Draw 1P option
+        this.renderer.drawRect(200, 200, 400, 80, 'steel');
+        this.renderer.drawRect(210, 210, 380, 60, 'black');
+        this.renderer.drawText('单人游戏 (1P)', 400, 225, 'white', 24);
+        this.renderer.drawText('WASD 移动 | 空格射击', 400, 250, '#AAA', 16);
+        
+        // Draw 2P option
+        this.renderer.drawRect(200, 310, 400, 80, 'steel');
+        this.renderer.drawRect(210, 320, 380, 60, 'black');
+        this.renderer.drawText('双人游戏 (2P)', 400, 335, 'white', 24);
+        this.renderer.drawText('P1: WASD+空格 | P2: 方向键+回车', 400, 360, '#AAA', 16);
+        
+        // Draw back option
+        this.renderer.drawRect(200, 420, 400, 50, 'steel');
+        this.renderer.drawRect(210, 430, 380, 30, 'black');
+        this.renderer.drawText('按 ESC 返回', 400, 445, 'white', 20);
+        
+        // Draw navigation hint
+        this.renderer.drawRect(200, 500, 400, 40, 'steel');
+        this.renderer.drawRect(210, 510, 380, 20, 'black');
+        this.renderer.drawText('↑↓ 选择 | ENTER 确认', 400, 522, 'white', 16);
+    }
+
     
     /**
      * Draw the level selection screen

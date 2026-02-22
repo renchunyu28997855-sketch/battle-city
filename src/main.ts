@@ -12,7 +12,7 @@ import { InputManager } from './core/InputManager';
 import { Renderer } from './core/Renderer';
 import { MapSystem, TileType } from './game/systems/MapSystem';
 import { PlayerTank } from './game/entities/PlayerTank';
-import { Screens, GameState } from './ui/Screens';
+import { Screens, GameState, GameMode } from './ui/Screens';
 import { Direction } from './game/entities/Tank';
 import { Bullet, BulletDirection } from './game/entities/Bullet';
 import { BulletPool } from './game/entities/BulletPool';
@@ -51,8 +51,15 @@ const SHOVEL_DURATION = 20000;
 void playerCanPassWater;
 
 // Game state - start in Menu mode
+// Game state - start in Menu mode
 let gameState: GameState = GameState.Menu;
+let gameMode: GameMode = GameMode.Single;
 let playerTank: PlayerTank | null = null;
+let player2Tank: PlayerTank | null = null;
+let player2LastShotTime: number = 0;
+let player2WasMoving: boolean = false;
+let selectedMode: number = 0;
+let modeKeyReleased: boolean = true;
 let bullets: Bullet[] = [];
 (window as any).bullets = bullets;
 let enemies: EnemyTank[] = [];
@@ -85,6 +92,16 @@ const EXPLOSION_DURATION = 500; // 毫秒
 // Initialize player tank
 function initPlayerTank() {
     playerTank = new PlayerTank(mapSystem);
+    playerTank = new PlayerTank(mapSystem);
+}
+
+// Initialize player 2 tank (for two-player mode)
+function initPlayer2Tank() {
+    player2Tank = new PlayerTank(mapSystem);
+    player2Tank.x = 8 * 64;  // Different spawn position
+    player2Tank.y = 12 * 64;
+    player2Tank.health = 3;
+    player2Tank.bulletLevel = 1;
 }
 
 // Reset level
