@@ -45,45 +45,68 @@ export class CollisionSystem {
     const bulletCenterX = bullet.x + bullet.width / 2;
     const bulletCenterY = bullet.y + bullet.height / 2;
     
-    const tileX = Math.floor(bulletCenterX / 64);
-    const tileY = Math.floor(bulletCenterY / 64);
-
-    const tileType = this.mapSystem.getTile(tileX, tileY);
+    let tilesDestroyed = 0;
+    const maxBricksToDestroy = bullet.brickPenetrationCount || 1;
+    const canPenetrateBrick = bullet.canPenetrateBrick;
     
-    switch (tileType) {
-      case TileType.Brick:
-        this.mapSystem.setTile(tileX, tileY, TileType.Empty);
-        bullet.active = false;
-        return;
-        
-      case TileType.Steel:
-        // 只有 powerLevel >= 3 (4颗星/手枪) 才能穿透钢铁
-        if (bullet.isSteel) {
-          this.mapSystem.setTile(tileX, tileY, TileType.Empty);
-        } else {
-          this.soundManager.playMetalHit();
-        }
-        bullet.active = false;
-        return;
-        
-      case TileType.Water:
-        bullet.active = false;
-        return;
-        
-      case TileType.Base:
-        bullet.active = false;
-        return;
-        
-      case TileType.Eagle:
-        bullet.active = false;
-        (window as any).eagleDestroyed = true;
-        return;
-        
-      case TileType.Forest:
-      case TileType.Floor:
-      case TileType.Empty:
-      default:
-        break;
+    // Determine direction to check for multiple tiles
+    let dx = 0, dy = 0;
+    switch (bullet.direction) {
+      case 0: dy = -1; break; // Up
+      case 1: dy = 1; break;  // Down
+      case 2: dx = -1; break; // Left
+      case 3: dx = 1; break;  // Right
+    }
+    
+    // Check current tile and tiles in bullet direction
+    for (let i = 0; i <= maxBricksToDestroy; i++) {
+      const checkX = Math.floor((bulletCenterX + dx * i * 64) / 64);
+      const checkY = Math.floor((bulletCenterY + dy * i * 64) / 64);
+      
+      const tileType = this.mapSystem.getTile(checkX, checkY);
+      
+      switch (tileType) {
+        case TileType.Brick:
+          this.mapSystem.setTile(checkX, checkY, TileType.Empty);
+          tilesDestroyed++;
+          if (!canPenetrateBrick || tilesDestroyed >= maxBricksToDestroy) {
+            bullet.active = false;
+            return;
+          }
+          break;
+          
+        case TileType.Steel:
+          // 只有 powerLevel >= 3 才能穿透钢铁
+          if (bullet.isSteel) {
+            this.mapSystem.setTile(checkX, checkY, TileType.Empty);
+            bullet.active = false;
+            return;
+          } else {
+            this.soundManager.playMetalHit();
+            bullet.active = false;
+            return;
+          }
+          
+        case TileType.Water:
+          bullet.active = false;
+          return;
+          
+        case TileType.Base:
+          bullet.active = false;
+          return;
+          
+        case TileType.Eagle:
+          bullet.active = false;
+          (window as any).eagleDestroyed = true;
+          return;
+          
+        case TileType.Forest:
+        case TileType.Floor:
+        case TileType.Empty:
+        default:
+          // Continue checking in direction
+          break;
+      }
     }
   }
 

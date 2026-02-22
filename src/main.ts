@@ -104,6 +104,12 @@ function resetLevel() {
     if (playerTank) {
         playerTank.canPassWater = false;
     }
+
+    // Reset player tank position to spawn point (keep bullet level)
+    if (playerTank) {
+        playerTank.x = 4 * 64;
+        playerTank.y = 12 * 64;
+    }
 }
 
 // Load level by number (1-40)
@@ -297,21 +303,33 @@ function update(deltaTime: number) {
                     playerTank.update(deltaTime);
                 }
                 
-                // Space bar to shoot (with cooldown)
+                // Space bar to shoot (with cooldown based on bullet level)
                 const now = Date.now();
-                if (inputManager.isPressed('Space') && now - lastShotTime > 900) {
+                const currentBulletLevel = playerTank ? playerTank.bulletLevel : 1;
+                const cooldown = currentBulletLevel >= 3 ? 500 : currentBulletLevel >= 2 ? 700 : 900;
+                if (inputManager.isPressed('Space') && now - lastShotTime > cooldown) {
                     lastShotTime = now;
                     if (!bulletPool) {
                         bulletPool = BulletPool.getInstance();
                     }
                     const bullet = bulletPool.acquire();
                     if (bullet && playerTank) {
-                        bullet.x = playerTank.x + 24;
-                        bullet.y = playerTank.y + 24;
-                        bullet.direction = playerTank.direction as unknown as BulletDirection;
-                        bullet.active = true;
+                        // Use bullet.init() to properly initialize all bullet properties from unified config
+                        bullet.init(
+                            playerTank.x + 24,
+                            playerTank.y + 24,
+                            playerTank.direction as unknown as BulletDirection,
+                            now,
+                            playerTank.bulletLevel,
+                            playerTank.bulletColorType
+                        );
                         bullets.push(bullet);
-                        soundManager.playShoot();
+                        // 穿透弹使用特殊的发射音效
+                        if (playerTank.bulletLevel >= 3) {
+                            soundManager.playPenetrateShoot();
+                        } else {
+                            soundManager.playShoot();
+                        }
                     }
                 }
                 
@@ -335,8 +353,10 @@ function update(deltaTime: number) {
             }
             
             // Spawn enemies immediately after a kill (90 version), max 20 per level, max 4 on screen
+            const maxEnemiesSpawn = (window as any).MAX_ENEMIES_PER_LEVEL || MAX_ENEMIES_PER_LEVEL;
+            const maxOnScreen = (window as any).MAX_ON_SCREEN_ENEMIES || MAX_ON_SCREEN_ENEMIES;
             enemySpawnTimer += deltaTime;
-            if (enemiesSpawned < MAX_ENEMIES_PER_LEVEL && enemies.length < MAX_ON_SCREEN_ENEMIES) {
+            if (enemiesSpawned < maxEnemiesSpawn && enemies.length < maxOnScreen) {
                 const enemyTypes = [ArmoredCar, LightTank, AntiTankGun, HeavyTank, NormalTank];
                 const EnemyClass = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
                 const newEnemy = new EnemyClass(0, 0, mapSystem);
@@ -376,15 +396,21 @@ function update(deltaTime: number) {
                 }
             }
             
-            // Check player collecting power-ups
+            // Check player collecting power-ups - must be in same tile (center of tank in power-up tile)
             if (playerTank) {
                 const activePowerUps = powerUpManager.getActivePowerUps();
+                const tankCenterX = playerTank.x + playerTank.width / 2;
+                const tankCenterY = playerTank.y + playerTank.height / 2;
+                
                 for (const pu of activePowerUps) {
-                    if (playerTank.x < pu.position.x + 64 &&
-                        playerTank.x + playerTank.width > pu.position.x &&
-                        playerTank.y < pu.position.y + 64 &&
-                        playerTank.y + playerTank.height > pu.position.y) {
+                    const puCenterX = pu.position.x + 32;
+                    const puCenterY = pu.position.y + 32;
+                    
+                    // 只有坦克中心进入道具格子才能吃掉
+                    if (Math.abs(tankCenterX - puCenterX) < 32 &&
+                        Math.abs(tankCenterY - puCenterY) < 32) {
                         powerUpManager.activate(pu.id);
+                        soundManager.playPowerUp();
                         applyPowerUpEffect(pu.type);
                     }
                 }
@@ -433,11 +459,13 @@ function update(deltaTime: number) {
             }
             
             // Check level complete (all enemies defeated)
-            if (enemiesSpawned >= MAX_ENEMIES_PER_LEVEL && activeEnemies === 0) {
+            const maxEnemies = (window as any).MAX_ENEMIES_PER_LEVEL || MAX_ENEMIES_PER_LEVEL;
+            if (enemiesSpawned >= maxEnemies && activeEnemies === 0) {
                 if (currentLevel >= TOTAL_LEVELS) {
                     gameState = GameState.LevelComplete;
                 } else {
                     currentLevel++;
+                    loadLevel(currentLevel);
                     resetLevel();
                 }
             }
@@ -464,24 +492,49 @@ function update(deltaTime: number) {
                         b.x + b.width > e.x &&
                         b.y < e.y + e.height &&
                         b.y + b.height > e.y) {
-                        b.active = false;
-                        e.health--;
-                        if (e.health > 0) {
-                            soundManager.playMetalHit();
+                        
+                        const isPenetration = b.canPenetrateTanks && b.powerLevel >= 3;
+                        
+                        if (isPenetration) {
+                            // 穿透子弹: 击杀所有非装甲坦克, 穿透过去
+                            e.health = 0;  // 直接击杀所有非装甲坦克
+                            
+                            // 播放穿透音效
+                            soundManager.playPenetrate();
+                            
+                            if (e.health <= 0) {
+                                e.active = false;
+                                // 穿透弹使用特殊的爆炸音效
+                                soundManager.playPenetrateExplosion();
+                                explosions.push({
+                                    x: e.x,
+                                    y: e.y,
+                                    size: e.width,
+                                    startTime: Date.now()
+                                });
+                            }
+                            // 穿透子弹不消失, 继续穿透
                         } else {
-                            soundManager.playHit();
+                            // 普通子弹: 原来逻辑
+                            b.active = false;
+                            e.health--;
+                            if (e.health > 0) {
+                                soundManager.playMetalHit();
+                            } else {
+                                soundManager.playHit();
+                            }
+                            if (e.health <= 0) {
+                                e.active = false;
+                                soundManager.playExplosion();
+                                explosions.push({
+                                    x: e.x,
+                                    y: e.y,
+                                    size: e.width,
+                                    startTime: Date.now()
+                                });
+                            }
+                            break;
                         }
-                        if (e.health <= 0) {
-                            e.active = false;
-                            soundManager.playExplosion();
-                            explosions.push({
-                                x: e.x,
-                                y: e.y,
-                                size: e.width,
-                                startTime: Date.now()
-                            });
-                        }
-                        break;
                     }
                 }
                 
@@ -495,6 +548,8 @@ function update(deltaTime: number) {
                         b.active = false;
                         if (!playerInvincible) {
                             playerTank.health--;
+                            // 中弹后子弹威力降回1级
+                            playerTank.bulletLevel = 1;
                             soundManager.playHit();
                             if (playerTank.health <= 0) {
                                 soundManager.playExplosion();
@@ -593,15 +648,7 @@ function render() {
             // Render bullets
             for (const bullet of bullets) {
                 if (bullet.active) {
-                    let color = 'white';
-                    if (bullet.isSteel || bullet.powerLevel >= 3) {
-                        color = 'cyan';
-                    } else if (bullet.powerLevel >= 2) {
-                        color = 'orange';
-                    } else if (bullet.powerLevel >= 1) {
-                        color = 'lightGray';
-                    }
-                    renderer.drawRect(bullet.x, bullet.y, bullet.width, bullet.height, color);
+                    renderer.drawRect(bullet.x, bullet.y, bullet.width, bullet.height, bullet.color);
                 }
             }
             

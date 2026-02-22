@@ -36,11 +36,11 @@ export class MapSystem {
         this.grid[11][4] = TileType.Empty;
         this.grid[11][8] = TileType.Empty;
         
-        // Surround eagle with bricks (left, right, top, and top corners)
+        // Surround eagle with bricks - directly adjacent (bottom edge, can't go below)
         const eagleWalls = [
-            [5,12],[7,12],  // left, right
-            [6,11],          // top
-            [5,11],[7,11]   // top left, top right
+            [5,12],[7,12],  // left, right (same row as eagle)
+            [6,11],          // top (above eagle)
+            [5,11],[7,11]   // top corners
         ];
         for (const [x,y] of eagleWalls) {
             this.grid[y][x] = TileType.Brick;

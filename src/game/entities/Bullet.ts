@@ -1,3 +1,5 @@
+import { getBulletConfig, SPECIAL_BULLET_COLORS } from '../config/BulletConfig';
+
 export enum BulletDirection {
   Up,
   Down,
@@ -15,23 +17,25 @@ export class Bullet {
   active: boolean;
   isEnemyBullet: boolean = false;
   powerLevel: number = 0;
+  color: string = 'white';
+  canPenetrateBrick: boolean = false;
+  canPenetrateSteel: boolean = false;
   isSteel: boolean = false;
+  brickPenetrationCount: number = 1;  // 一次能打掉的砖块数量
+  canPenetrateTanks: boolean = false;  // 是否可以穿透坦克
   private lastFiredTime: number = 0;
-  private fireCooldown: number = 0.3;
+  private currentCooldown: number = 900;
   
-  // 子弹速度档位: 1=最慢, 2=中等, 3=最快
-  private static readonly SPEED_LEVELS = [192, 256, 320];
-
   constructor() {
     this.x = 0;
     this.y = 0;
     this.direction = BulletDirection.Up;
-    this.speed = Bullet.SPEED_LEVELS[0]; // 默认最慢档位
+    this.speed = 192; // Default from config
     this.active = false;
   }
 
-  init(x: number, y: number, direction: BulletDirection, currentTime: number, powerLevel: number = 0): boolean {
-    if (currentTime - this.lastFiredTime < this.fireCooldown) {
+  init(x: number, y: number, direction: BulletDirection, currentTime: number, powerLevel: number = 0, specialType: string = ''): boolean {
+    if (currentTime - this.lastFiredTime < this.currentCooldown) {
       return false;
     }
 
@@ -41,12 +45,28 @@ export class Bullet {
     this.active = true;
     this.lastFiredTime = currentTime;
     this.powerLevel = powerLevel;
-    // 只有 powerLevel >= 3 (4颗星/手枪) 才能穿透钢铁
-    this.isSteel = powerLevel >= 3;
     
-    // 根据 powerLevel 设置速度档位
-    const speedIndex = Math.min(Math.max(powerLevel, 0), 2);
-    this.speed = Bullet.SPEED_LEVELS[speedIndex];
+    // Use unified config
+    const level = Math.min(Math.max(powerLevel, 1), 3);
+    const config = getBulletConfig(level);
+    
+    this.speed = config.speed;
+    this.currentCooldown = config.fireCooldown;
+    this.canPenetrateBrick = config.canPenetrateBrick;
+    this.canPenetrateSteel = config.canPenetrateSteel;
+    this.isSteel = config.canPenetrateSteel;
+    this.brickPenetrationCount = config.brickPenetrationCount;
+    // Level 3 can penetrate tanks
+    this.canPenetrateTanks = config.canPenetrateMultiple !== 0;
+    
+    // Override color for special power-ups
+    if (specialType === 'star') {
+      this.color = SPECIAL_BULLET_COLORS['star'];
+    } else if (specialType === 'gun') {
+      this.color = SPECIAL_BULLET_COLORS['gun'];
+    } else {
+      this.color = config.color;
+    }
     
     return true;
   }

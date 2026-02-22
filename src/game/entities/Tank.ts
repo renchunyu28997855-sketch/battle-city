@@ -15,7 +15,10 @@ export class Tank {
     health: number;
     scoreValue: number;
     bulletLevel: number;
+    bulletSpeedLevel: number = 0;  // 子弹速度等级
+    bulletColorType: string = '';   // 'star' or 'gun' for bullet color
     enemyType: string;
+
 
     constructor(x: number, y: number) {
         this.x = x;

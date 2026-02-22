@@ -17,8 +17,11 @@ export class PowerUpManager {
     type: PowerUpType;
     position: Vector2D;
     expirationTime: number;
+    spawnTime: number;  // Time when power-up was spawned
     active: boolean;
   }> = [];
+
+  private static readonly SPAWN_DELAY = 1000;  // 1 second delay before power-up can be collected
 
   private powerUpTypes: PowerUpType[] = [
     PowerUpType.HELMET,
@@ -43,6 +46,7 @@ export class PowerUpManager {
       id,
       type: powerUpType,
       position,
+      spawnTime: Date.now(),
       expirationTime: Date.now() + PowerUpManager.POWER_UP_DURATION,
       active: true
     });
@@ -56,8 +60,9 @@ export class PowerUpManager {
     position: Vector2D;
     expirationTime: number;
   }> {
+    const now = Date.now();
     return this.powerUps
-      .filter(powerUp => powerUp.active)
+      .filter(powerUp => powerUp.active && (now - powerUp.spawnTime >= PowerUpManager.SPAWN_DELAY))
       .map(({ id, type, position, expirationTime }) => ({
         id,
         type,
