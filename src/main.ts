@@ -133,11 +133,13 @@ function applyPowerUpEffect(type: PowerUpType) {
         case PowerUpType.HELMET:
             playerInvincible = true;
             invincibleTimer = INVINCIBLE_DURATION;
+            soundManager.playHelmet();
             break;
         case PowerUpType.STAR:
             if (playerTank.bulletLevel < 3) {
                 playerTank.bulletLevel++;
             }
+            soundManager.playStar();
             break;
         case PowerUpType.BOMB:
             for (const enemy of enemies) {
@@ -152,10 +154,12 @@ function applyPowerUpEffect(type: PowerUpType) {
                     });
                 }
             }
+            soundManager.playExplosion();
             break;
         case PowerUpType.CLOCK:
             enemiesFrozen = true;
             enemyFreezeTimer = CLOCK_DURATION;
+            soundManager.playClock();
             break;
         case PowerUpType.SHOVEL:
             shovelTimer = SHOVEL_DURATION;
@@ -171,16 +175,20 @@ function applyPowerUpEffect(type: PowerUpType) {
                     }
                 }
             }
+            soundManager.playShovel();
             break;
         case PowerUpType.TANK:
             playerTank.health++;
+            soundManager.playTank();
             break;
         case PowerUpType.BOAT:
             playerCanPassWater = true;
             if (playerTank) playerTank.canPassWater = true;
+            soundManager.playBoat();
             break;
         case PowerUpType.GUN:
             playerTank.bulletLevel = 3;
+            soundManager.playGun();
             break;
     }
 }
@@ -653,10 +661,22 @@ function render() {
             drawMap();
             
             if (playerTank) {
-                const dir = playerTank.direction === 0 ? 'up' : 
-                           playerTank.direction === 1 ? 'down' : 
-                           playerTank.direction === 2 ? 'left' : 'right';
-                renderer.drawTank(playerTank.x, playerTank.y, playerTank.width, dir, 'blue');
+                // 无敌状态时闪烁效果 (每300ms切换一次可见性)
+                if (playerInvincible) {
+                    const flashPhase = Math.floor(Date.now() / 300) % 2;
+                    if (flashPhase === 0) {
+                        // 闪烁时稍微改变颜色表示无敌
+                        const dir = playerTank.direction === 0 ? 'up' : 
+                                   playerTank.direction === 1 ? 'down' : 
+                                   playerTank.direction === 2 ? 'left' : 'right';
+                        renderer.drawTank(playerTank.x, playerTank.y, playerTank.width, dir, 'cyan');
+                    }
+                } else {
+                    const dir = playerTank.direction === 0 ? 'up' : 
+                               playerTank.direction === 1 ? 'down' : 
+                               playerTank.direction === 2 ? 'left' : 'right';
+                    renderer.drawTank(playerTank.x, playerTank.y, playerTank.width, dir, 'blue');
+                }
             }
             
             // Render bullets
@@ -669,18 +689,40 @@ function render() {
             // Render enemies
             for (const enemy of enemies) {
                 if (enemy.active) {
-                    const dir = enemy.direction === 0 ? 'up' : 
-                               enemy.direction === 1 ? 'down' : 
-                               enemy.direction === 2 ? 'left' : 'right';
-                    let color = 'red';
-                    switch (enemy.enemyType) {
-                        case 'armored': color = 'yellow'; break;
-                        case 'light': color = 'white'; break;
-                        case 'anti': color = 'green'; break;
-                        case 'heavy': color = 'red'; break;
-                        default: color = 'red';
+                    // 敌人出生4秒内无敌,显示闪烁效果
+                    const isInvincible = (enemy as any).isSpawnInvincible;
+                    
+                    // 无敌时闪烁效果
+                    if (isInvincible) {
+                        const flashPhase = Math.floor(Date.now() / 100) % 2;
+                        if (flashPhase === 0) {
+                            const dir = enemy.direction === 0 ? 'up' : 
+                                       enemy.direction === 1 ? 'down' : 
+                                       enemy.direction === 2 ? 'left' : 'right';
+                            let color = 'red';
+                            switch (enemy.enemyType) {
+                                case 'armored': color = 'yellow'; break;
+                                case 'light': color = 'white'; break;
+                                case 'anti': color = 'green'; break;
+                                case 'heavy': color = 'red'; break;
+                                default: color = 'red';
+                            }
+                            renderer.drawTank(enemy.x, enemy.y, enemy.width, dir, color);
+                        }
+                    } else {
+                        const dir = enemy.direction === 0 ? 'up' : 
+                                   enemy.direction === 1 ? 'down' : 
+                                   enemy.direction === 2 ? 'left' : 'right';
+                        let color = 'red';
+                        switch (enemy.enemyType) {
+                            case 'armored': color = 'yellow'; break;
+                            case 'light': color = 'white'; break;
+                            case 'anti': color = 'green'; break;
+                            case 'heavy': color = 'red'; break;
+                            default: color = 'red';
+                        }
+                        renderer.drawTank(enemy.x, enemy.y, enemy.width, dir, color);
                     }
-                    renderer.drawTank(enemy.x, enemy.y, enemy.width, dir, color);
                 }
             }
             

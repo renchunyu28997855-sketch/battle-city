@@ -96,32 +96,39 @@ export class SoundManager {
         this.initAudio();
         if (!this.audioCtx) return;
         
-        const bufferSize = this.audioCtx.sampleRate * 0.3;
-        const buffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
-        const data = buffer.getChannelData(0);
-        
-        for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1;
+        // 创建多次爆炸,叠加在一起
+        for (let i = 0; i < 3; i++) {
+            const delay = i * 0.15;
+            const duration = 0.4 + i * 0.1;
+            const bufferSize = this.audioCtx.sampleRate * duration;
+            const buffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let j = 0; j < bufferSize; j++) {
+                data[j] = Math.random() * 2 - 1;
+            }
+            
+            const noise = this.audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            
+            const gain = this.audioCtx.createGain();
+            const filter = this.audioCtx.createBiquadFilter();
+            
+            filter.type = 'highpass';
+            filter.frequency.setValueAtTime(1500 - i * 300, this.audioCtx.currentTime + delay);
+            filter.frequency.exponentialRampToValueAtTime(300, this.audioCtx.currentTime + delay + duration);
+            
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.audioCtx.destination);
+            
+            // 每次爆炸音量递减
+            const volume = 0.7 - i * 0.15;
+            gain.gain.setValueAtTime(volume, this.audioCtx.currentTime + delay);
+            gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + delay + duration);
+            
+            noise.start(this.audioCtx.currentTime + delay);
         }
-        
-        const noise = this.audioCtx.createBufferSource();
-        noise.buffer = buffer;
-        
-        const gain = this.audioCtx.createGain();
-        const filter = this.audioCtx.createBiquadFilter();
-        
-        filter.type = 'highpass';
-        filter.frequency.setValueAtTime(2000, this.audioCtx.currentTime);
-        filter.frequency.exponentialRampToValueAtTime(500, this.audioCtx.currentTime + 0.25);
-        
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.audioCtx.destination);
-        
-        gain.gain.setValueAtTime(0.6, this.audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.25);
-        
-        noise.start(this.audioCtx.currentTime);
     }
     
     // Enemy hit sound
@@ -309,5 +316,169 @@ export class SoundManager {
         
         osc2.start(this.audioCtx.currentTime + 0.05);
         osc2.stop(this.audioCtx.currentTime + 0.2);
+    }
+    
+    // 闹钟音效 - 定时道具
+    playClock(): void {
+        this.initAudio();
+        if (!this.audioCtx) return;
+        
+        // 重复的闹钟声
+        for (let i = 0; i < 3; i++) {
+            const osc = this.audioCtx.createOscillator();
+            const gain = this.audioCtx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(this.audioCtx.destination);
+            
+            osc.frequency.setValueAtTime(800, this.audioCtx.currentTime + i * 0.3);
+            osc.type = 'square';
+            
+            gain.gain.setValueAtTime(0.3, this.audioCtx.currentTime + i * 0.3);
+            gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + i * 0.3 + 0.15);
+            
+            osc.start(this.audioCtx.currentTime + i * 0.3);
+            osc.stop(this.audioCtx.currentTime + i * 0.3 + 0.15);
+        }
+    }
+    
+    // 星星道具音效 - 上升音效
+    playStar(): void {
+        this.initAudio();
+        if (!this.audioCtx) return;
+        
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        
+        // 上升音效
+        osc.frequency.setValueAtTime(523, this.audioCtx.currentTime);
+        osc.frequency.setValueAtTime(659, this.audioCtx.currentTime + 0.1);
+        osc.frequency.setValueAtTime(784, this.audioCtx.currentTime + 0.2);
+        osc.type = 'sine';
+        
+        gain.gain.setValueAtTime(0.3, this.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.3);
+        
+        osc.start(this.audioCtx.currentTime);
+        osc.stop(this.audioCtx.currentTime + 0.3);
+    }
+    
+    // 头盔道具音效 - 护盾音效
+    playHelmet(): void {
+        this.initAudio();
+        if (!this.audioCtx) return;
+        
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        
+        // 稳定的低音
+        osc.frequency.setValueAtTime(220, this.audioCtx.currentTime);
+        osc.type = 'sine';
+        
+        gain.gain.setValueAtTime(0.4, this.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.2);
+        
+        osc.start(this.audioCtx.currentTime);
+        osc.stop(this.audioCtx.currentTime + 0.2);
+    }
+    
+    // 铁锹道具音效 - 挖掘/建造音效
+    playShovel(): void {
+        this.initAudio();
+        if (!this.audioCtx) return;
+        
+        // 两次挖掘声
+        for (let i = 0; i < 2; i++) {
+            const osc = this.audioCtx.createOscillator();
+            const gain = this.audioCtx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(this.audioCtx.destination);
+            
+            osc.frequency.setValueAtTime(150, this.audioCtx.currentTime + i * 0.15);
+            osc.frequency.exponentialRampToValueAtTime(50, this.audioCtx.currentTime + i * 0.15 + 0.1);
+            osc.type = 'sawtooth';
+            
+            gain.gain.setValueAtTime(0.3, this.audioCtx.currentTime + i * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + i * 0.15 + 0.1);
+            
+            osc.start(this.audioCtx.currentTime + i * 0.15);
+            osc.stop(this.audioCtx.currentTime + i * 0.15 + 0.1);
+        }
+    }
+    
+    // 坦克道具音效 - 坦克升级音效
+    playTank(): void {
+        this.initAudio();
+        if (!this.audioCtx) return;
+        
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        
+        // 沉重的坦克声
+        osc.frequency.setValueAtTime(100, this.audioCtx.currentTime);
+        osc.frequency.setValueAtTime(80, this.audioCtx.currentTime + 0.1);
+        osc.type = 'sawtooth';
+        
+        gain.gain.setValueAtTime(0.4, this.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.2);
+        
+        osc.start(this.audioCtx.currentTime);
+        osc.stop(this.audioCtx.currentTime + 0.2);
+    }
+    
+    // 船道具音效 - 水上音效
+    playBoat(): void {
+        this.initAudio();
+        if (!this.audioCtx) return;
+        
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        
+        // 柔和的水声
+        osc.frequency.setValueAtTime(300, this.audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(200, this.audioCtx.currentTime + 0.3);
+        osc.type = 'sine';
+        
+        gain.gain.setValueAtTime(0.3, this.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.3);
+        
+        osc.start(this.audioCtx.currentTime);
+        osc.stop(this.audioCtx.currentTime + 0.3);
+    }
+    
+    // 枪道具音效 - 武器升级
+    playGun(): void {
+        this.initAudio();
+        if (!this.audioCtx) return;
+        
+        // 快速上升音效
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        
+        osc.frequency.setValueAtTime(400, this.audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, this.audioCtx.currentTime + 0.15);
+        osc.type = 'square';
+        
+        gain.gain.setValueAtTime(0.3, this.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.15);
+        
+        osc.start(this.audioCtx.currentTime);
+        osc.stop(this.audioCtx.currentTime + 0.15);
     }
 }
