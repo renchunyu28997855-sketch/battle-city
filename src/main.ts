@@ -12,7 +12,7 @@ import { InputManager } from './core/InputManager';
 import { Renderer } from './core/Renderer';
 import { MapSystem, TileType } from './game/systems/MapSystem';
 import { PlayerTank } from './game/entities/PlayerTank';
-import { Screens, GameState, GameMode } from './ui/Screens';
+import { Screens, GameState } from './ui/Screens';
 import { Direction } from './game/entities/Tank';
 import { Bullet, BulletDirection } from './game/entities/Bullet';
 import { BulletPool } from './game/entities/BulletPool';
@@ -51,15 +51,10 @@ const SHOVEL_DURATION = 20000;
 void playerCanPassWater;
 
 // Game state - start in Menu mode
-// Game state - start in Menu mode
 let gameState: GameState = GameState.Menu;
-let gameMode: GameMode = GameMode.Single;
 let playerTank: PlayerTank | null = null;
-let player2Tank: PlayerTank | null = null;
-let player2LastShotTime: number = 0;
-let player2WasMoving: boolean = false;
-let selectedMode: number = 0;
-let modeKeyReleased: boolean = true;
+// TODO: 双人模式需要恢复
+// let player2Tank: PlayerTank | null = null;
 let bullets: Bullet[] = [];
 (window as any).bullets = bullets;
 let enemies: EnemyTank[] = [];
@@ -93,15 +88,6 @@ const EXPLOSION_DURATION = 500; // 毫秒
 function initPlayerTank() {
     playerTank = new PlayerTank(mapSystem);
     playerTank = new PlayerTank(mapSystem);
-}
-
-// Initialize player 2 tank (for two-player mode)
-function initPlayer2Tank() {
-    player2Tank = new PlayerTank(mapSystem);
-    player2Tank.x = 8 * 64;  // Different spawn position
-    player2Tank.y = 12 * 64;
-    player2Tank.health = 3;
-    player2Tank.bulletLevel = 1;
 }
 
 // Reset level
@@ -139,6 +125,7 @@ function loadLevel(level: number) {
         mapSystem.grid = newMapSystem.grid;
         (window as any).MAX_ENEMIES_PER_LEVEL = config.enemy_config.total_count;
         (window as any).MAX_ON_SCREEN_ENEMIES = config.enemy_config.max_on_screen;
+        (window as any).ENEMY_SPAWN_INTERVAL = config.enemy_config.spawn_interval || 3;
     }
 }
 
@@ -385,11 +372,14 @@ function update(deltaTime: number) {
                 }
             }
             
-            // Spawn enemies immediately after a kill (90 version), max 20 per level, max 4 on screen
+            // Spawn enemies based on spawn interval, max per level, max on screen
             const maxEnemiesSpawn = (window as any).MAX_ENEMIES_PER_LEVEL || MAX_ENEMIES_PER_LEVEL;
             const maxOnScreen = (window as any).MAX_ON_SCREEN_ENEMIES || MAX_ON_SCREEN_ENEMIES;
+            const spawnInterval = (window as any).ENEMY_SPAWN_INTERVAL || 3;
             enemySpawnTimer += deltaTime;
-            if (enemiesSpawned < maxEnemiesSpawn && enemies.length < maxOnScreen) {
+            
+            // 只有达到生成间隔并且敌人数量未满时才生成
+            if (enemySpawnTimer >= spawnInterval && enemiesSpawned < maxEnemiesSpawn && enemies.length < maxOnScreen) {
                 const enemyTypes = [ArmoredCar, LightTank, AntiTankGun, HeavyTank, NormalTank];
                 const EnemyClass = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
                 const newEnemy = new EnemyClass(0, 0, mapSystem);
@@ -534,9 +524,12 @@ function update(deltaTime: number) {
                         
                         const isPenetration = b.canPenetrateTanks && b.powerLevel >= 3;
                         
-                        if (isPenetration) {
-                            // 穿透子弹: 击杀所有非装甲坦克, 穿透过去
-                            e.health = 0;  // 直接击杀所有非装甲坦克
+                        // 装甲坦克不能被穿透
+                        const isArmoredTank = e.enemyType === 'armored';
+                        
+                        if (isPenetration && !isArmoredTank) {
+                            // 三级穿透弹: 击杀所有非装甲坦克, 穿透过去
+                            e.health = 0;  // 直接击杀
                             
                             // 播放穿透音效
                             soundManager.playPenetrate();
@@ -552,7 +545,23 @@ function update(deltaTime: number) {
                                     startTime: Date.now()
                                 });
                             }
-                            // 穿透子弹不消失, 继续穿透
+                            // 穿透子弹不消失, 继续穿透下一个敌人
+                        } else if (isArmoredTank) {
+                            // 装甲坦克: 子弹停止，不穿透
+                            b.active = false;
+                            // 装甲坦克受击扣血
+                            e.health--;
+                            if (e.health <= 0) {
+                                e.active = false;
+                                soundManager.playExplosion();
+                                explosions.push({
+                                    x: e.x,
+                                    y: e.y,
+                                    size: e.width,
+                                    startTime: Date.now()
+                                });
+                            }
+                            break;
                         } else {
                             // 普通子弹: 原来逻辑
                             b.active = false;
@@ -760,7 +769,7 @@ function render() {
             
             // Draw power-ups
             for (const pu of powerUpManager.getActivePowerUps()) {
-                drawPowerUp(pu.position.x, pu.position.y, pu.type);
+                drawPowerUp(pu.position.x, pu.position.y, pu.type, pu.isFlashing);
             }
             
             drawForestOverlay();
@@ -848,7 +857,7 @@ function drawForestOverlay() {
     }
 }
 
-function drawPowerUp(x: number, y: number, type: PowerUpType) {
+function drawPowerUp(x: number, y: number, type: PowerUpType, isFlashing: boolean = false) {
     const size = 48;
     const offset = (64 - size) / 2;
     x += offset;
@@ -856,6 +865,15 @@ function drawPowerUp(x: number, y: number, type: PowerUpType) {
     
     const ctx = renderer['ctx'];
     ctx.save();
+    
+    // 闪烁效果：每300ms切换一次可见性
+    if (isFlashing) {
+        const flashPhase = Math.floor(Date.now() / 300) % 2;
+        if (flashPhase === 0) {
+            // 闪烁时透明
+            ctx.globalAlpha = 0.3;
+        }
+    }
     
     const colors: Record<PowerUpType, string> = {
         [PowerUpType.HELMET]: '#9B59B6',

@@ -17,11 +17,8 @@ export class PowerUpManager {
     type: PowerUpType;
     position: Vector2D;
     expirationTime: number;
-    spawnTime: number;  // Time when power-up was spawned
     active: boolean;
   }> = [];
-
-  private static readonly SPAWN_DELAY = 1000;  // 1 second delay before power-up can be collected
 
   private powerUpTypes: PowerUpType[] = [
     PowerUpType.HELMET,
@@ -34,6 +31,9 @@ export class PowerUpManager {
     PowerUpType.GUN
   ];
 
+  // 道具闪烁时间（过期前3秒开始闪烁）
+  private static readonly FLASH_TIME = 3000;
+  // 道具总存活时间 15秒
   private static POWER_UP_DURATION = 15000;
 
   constructor() {}
@@ -46,7 +46,6 @@ export class PowerUpManager {
       id,
       type: powerUpType,
       position,
-      spawnTime: Date.now(),
       expirationTime: Date.now() + PowerUpManager.POWER_UP_DURATION,
       active: true
     });
@@ -54,21 +53,40 @@ export class PowerUpManager {
     return id;
   }
 
+  // 获取活跃道具，包含闪烁状态
   getActivePowerUps(): Array<{
     id: string;
     type: PowerUpType;
     position: Vector2D;
     expirationTime: number;
+    isFlashing: boolean;  // 是否处于闪烁状态
   }> {
     const now = Date.now();
     return this.powerUps
-      .filter(powerUp => powerUp.active && (now - powerUp.spawnTime >= PowerUpManager.SPAWN_DELAY))
-      .map(({ id, type, position, expirationTime }) => ({
-        id,
-        type,
-        position,
-        expirationTime
-      }));
+      .filter(powerUp => {
+        // 过滤掉：未激活的 或 已过期的
+        if (!powerUp.active) return false;
+        if (now >= powerUp.expirationTime) return false;
+        return true;
+      })
+      .map(({ id, type, position, expirationTime }) => {
+        // 计算是否处于闪烁状态（过期前3秒）
+        const isFlashing = (expirationTime - now) <= PowerUpManager.FLASH_TIME;
+        return {
+          id,
+          type,
+          position,
+          expirationTime,
+          isFlashing
+        };
+      });
+  }
+
+  // 获取道具剩余时间（毫秒）
+  getTimeRemaining(id: string): number {
+    const powerUp = this.powerUps.find(p => p.id === id);
+    if (!powerUp) return 0;
+    return Math.max(0, powerUp.expirationTime - Date.now());
   }
 
   activate(id: string): boolean {
@@ -88,9 +106,10 @@ export class PowerUpManager {
   }
 
   update() {
+    // 移除所有已过期且未激活的道具
     const now = Date.now();
-    
     this.powerUps = this.powerUps.filter(powerUp => {
+      // 保留：激活的 或 未过期的
       return powerUp.active || now < powerUp.expirationTime;
     });
   }

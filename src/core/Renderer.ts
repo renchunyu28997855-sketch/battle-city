@@ -16,7 +16,8 @@ export class Renderer {
             yellow: '#F1C40F',
             cyan: '#1ABC9C',
             magenta: '#9B59B6',
-            orange: '#E67E22'
+            orange: '#E67E22',
+            steel: '#708090'       // 钢灰色
         };
     }
 

@@ -65,18 +65,13 @@ export class CollisionSystem {
     const minTileY = Math.floor(bulletTop / TILE_SIZE);
     const maxTileY = Math.floor((bulletBottom - 1) / TILE_SIZE);
     
-    // 记录已破坏的砖块数量
+    // 记录已破坏的砖块和钢铁数量
     let bricksDestroyed = 0;
+    let steelDestroyed = 0;
     
     // 按瓦片坐标顺序处理(先Y后X)
     for (let tileY = minTileY; tileY <= maxTileY; tileY++) {
       for (let tileX = minTileX; tileX <= maxTileX; tileX++) {
-        // 已经打够指定数量立即停止
-        if (bricksDestroyed >= maxBricksToDestroy) {
-          bullet.active = false;
-          return;
-        }
-        
         const tileType = this.mapSystem.getTile(tileX, tileY);
         
         switch (tileType) {
@@ -85,26 +80,31 @@ export class CollisionSystem {
             this.mapSystem.setTile(tileX, tileY, TileType.Empty);
             bricksDestroyed++;
             
-            // 打够数量立即停止
+            // 三级子弹一次打2块砖
             if (bricksDestroyed >= maxBricksToDestroy) {
-              bullet.active = false;
-              return;
-            }
-            // 不能穿透砖块则停止
-            if (!canPenetrateBrick) {
+              // 已达穿透上限，子弹停止
               bullet.active = false;
               return;
             }
             break;
             
           case TileType.Steel:
-            // 只有 powerLevel >= 3 才能穿透钢铁
+            // 只有 isSteel=true (三级子弹) 才能穿透钢铁
             if (bullet.isSteel) {
               this.mapSystem.setTile(tileX, tileY, TileType.Empty);
+              steelDestroyed++;
+              // 三级子弹一次打1块钢铁，打完后继续穿透
+              if (steelDestroyed >= 1) {
+                bullet.active = false;
+                return;
+              }
+            } else {
+              // 普通子弹打钢铁上停止
+              bullet.active = false;
+              this.soundManager.playMetalHit();
+              return;
             }
-            bullet.active = false;
-            this.soundManager.playMetalHit();
-            return;
+            break;
             
           case TileType.Water:
           case TileType.Base:
