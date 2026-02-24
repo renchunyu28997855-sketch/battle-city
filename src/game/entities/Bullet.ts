@@ -1,4 +1,5 @@
 import { getBulletConfig, SPECIAL_BULLET_COLORS } from '../config/BulletConfig';
+import { Vector2D } from '../utils/Vector2D';
 
 export enum BulletDirection {
   Up,
@@ -23,6 +24,16 @@ export class Bullet {
   isSteel: boolean = false;
   brickPenetrationCount: number = 1;  // 一次能打掉的砖块数量
   canPenetrateTanks: boolean = false;  // 是否可以穿透坦克
+  
+  // 反弹相关属性
+  isBounceBullet: boolean = false;      // 是否处于反弹状态
+  bounceCount: number = 0;              // 当前反弹次数
+  maxBounces: number = 3;               // 最大反弹次数
+  speedVector: Vector2D;                // 速度向量 (像素/秒)
+  previousX: number = 0;                // 上一帧位置 (用于碰撞检测)
+  previousY: number = 0;
+  bounceEnergyLoss: number = 1.0;       // 反弹能量损失 (1.0 = 无损失, 0.8 = 每次损失20%)
+  
   private lastFiredTime: number = 0;
   private currentCooldown: number = 900;
   
@@ -32,6 +43,7 @@ export class Bullet {
     this.direction = BulletDirection.Up;
     this.speed = 192; // Default from config
     this.active = false;
+    this.speedVector = new Vector2D(0, 0);
   }
 
   init(x: number, y: number, direction: BulletDirection, currentTime: number, powerLevel: number = 0, specialType: string = ''): boolean {
@@ -68,27 +80,74 @@ export class Bullet {
       this.color = config.color;
     }
     
+    // 初始化速度向量 (根据方向)
+    this.initSpeedVector(direction);
+    
+    // 重置反弹状态
+    this.isBounceBullet = false;
+    this.bounceCount = 0;
+    this.bounceEnergyLoss = 1.0;
+    
     return true;
+  }
+
+  /**
+   * 根据方向初始化速度向量
+   */
+  private initSpeedVector(direction: BulletDirection): void {
+    switch (direction) {
+      case BulletDirection.Up:
+        this.speedVector = new Vector2D(0, -this.speed);
+        break;
+      case BulletDirection.Down:
+        this.speedVector = new Vector2D(0, this.speed);
+        break;
+      case BulletDirection.Left:
+        this.speedVector = new Vector2D(-this.speed, 0);
+        break;
+      case BulletDirection.Right:
+        this.speedVector = new Vector2D(this.speed, 0);
+        break;
+    }
+  }
+
+  /**
+   * 设置反弹状态，使用反射向量
+   * @param reflectedVector 反射后的速度向量
+   */
+  setReflection(reflectedVector: Vector2D): void {
+    this.isBounceBullet = true;
+    this.bounceCount++;
+    
+    // 应用能量损失
+    const damping = Math.pow(this.bounceEnergyLoss, this.bounceCount);
+    this.speedVector = reflectedVector.multiply(damping);
+    
+    // 检查是否已达到最大反弹次数
+    if (this.bounceCount >= this.maxBounces) {
+      this.active = false;
+    }
+  }
+
+  /**
+   * 检查是否还能继续反弹
+   */
+  canStillBounce(): boolean {
+    return this.bounceCount < this.maxBounces;
   }
 
   update(deltaTime: number): void {
     if (!this.active) return;
 
-    switch (this.direction) {
-      case BulletDirection.Up:
-        this.y -= this.speed * deltaTime;
-        break;
-      case BulletDirection.Down:
-        this.y += this.speed * deltaTime;
-        break;
-      case BulletDirection.Left:
-        this.x -= this.speed * deltaTime;
-        break;
-      case BulletDirection.Right:
-        this.x += this.speed * deltaTime;
-        break;
-    }
+    // 保存上一帧位置 (用于碰撞检测)
+    this.previousX = this.x;
+    this.previousY = this.y;
 
+    // 使用速度向量更新位置
+    this.x += this.speedVector.x * deltaTime;
+    this.y += this.speedVector.y * deltaTime;
+
+    // 出界检查
     if (this.x < -16 || this.x > 832 || this.y < -16 || this.y > 832) {
       this.active = false;
     }
@@ -105,5 +164,12 @@ export class Bullet {
     this.brickPenetrationCount = 1;
     this.canPenetrateTanks = false;
     this.powerLevel = 0;
+    
+    // 重置反弹相关属性
+    this.isBounceBullet = false;
+    this.bounceCount = 0;
+    this.speedVector = new Vector2D(0, 0);
+    this.previousX = 0;
+    this.previousY = 0;
   }
 }

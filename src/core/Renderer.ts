@@ -21,36 +21,12 @@ export class Renderer {
         };
     }
 
-    // --- 私有辅助方法：绘制带光影的单个美化砖块 ---
-    private drawRealisticBrickShape(bx: number, by: number, bw: number, bh: number, baseH: number, baseS: number, baseL: number) {
-        const ctx = this.ctx;
-        ctx.save();
-        
-        // 固定颜色，移除随机变化，使砖块一致
-        ctx.fillStyle = `hsl(${baseH}, ${baseS}%, ${baseL}%)`;
-
-        // 2. 绘制圆角矩形
-        const radius = 2;
-        ctx.beginPath();
-        // @ts-ignore - roundRect 是较新的 API
-        if ('roundRect' in ctx) {
-            ctx.roundRect(bx, by, bw, bh, radius);
-        } else {
-            // Use rect for compatibility
-            (ctx as any).rect(bx, by, bw, bh);
-        }
-        ctx.fill();
-
-        // 3. 微弱描边增加缝隙感
-        ctx.strokeStyle = "rgba(0,0,0,0.1)";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        ctx.restore();
-    }
-
     clear(): void {
-        this.ctx.fillStyle = '#555555';
+        // 高清化：渐变灰色背景
+        const gradient = this.ctx.createLinearGradient(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        gradient.addColorStop(0, '#4a5568');
+        gradient.addColorStop(1, '#2d3748');
+        this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
@@ -143,27 +119,44 @@ export class Renderer {
     }
 
     drawBrick(x: number, y: number, size: number): void {
-        // Draw floor base first
-        this.ctx.fillStyle = '#555555'; // Dark gray floor
-        this.ctx.fillRect(x, y, size, size);
+        // 高清化：更好的砖块渲染
+        const ctx = this.ctx;
         
-        // 使用改良后的 Realistic 逻辑，但适配 Grid 大小
-        // 一个 Grid 单元格绘制 2行 x 2列 的砖块，模仿坦克大战的经典布局
+        // 绘制基础背景
+        ctx.fillStyle = '#5a5a5a';
+        ctx.fillRect(x, y, size, size);
+        
+        // 高清化砖块：2x2布局
         const gap = 1;
         const rows = 2;
         const cols = 2;
         const bW = (size - gap * (cols - 1)) / cols;
         const bH = (size - gap * (rows - 1)) / rows;
-
-        // 砖块基准色：红褐色 HSL(15, 60%, 45%)
-        const baseH = 15, baseS = 60, baseL = 45;
-
+        
+        // 经典的红色砖块颜色
+        const brickColors = [
+            '#C0392B',  // 深红
+            '#E74C3C',  // 红
+            '#D32F2F',  // 深红
+            '#C62828'   // 非常深红
+        ];
+        
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
-                // 简单的错位效果：第二行稍微偏一点（如果是更多行的话效果更明显，2x2保持对齐更像原版）
                 const bx = x + c * (bW + gap);
                 const by = y + r * (bH + gap);
-                this.drawRealisticBrickShape(bx, by, bW, bH, baseH, baseS, baseL);
+                const color = brickColors[(r + c) % brickColors.length];
+                
+                // 绘制砖块主体
+                ctx.fillStyle = color;
+                ctx.fillRect(bx, by, bW, bH);
+                
+                // 绘制砖块阴影和高光（模拟3D效果）
+                ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                ctx.fillRect(bx, by, bW, bH * 0.3); // 顶部高光
+                
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fillRect(bx, by + bH - bH * 0.3, bW, bH * 0.3); // 底部阴影
             }
         }
     }
@@ -171,45 +164,42 @@ export class Renderer {
     drawSteel(x: number, y: number, size: number): void {
         const ctx = this.ctx;
         
-        // Draw floor base first
-        ctx.fillStyle = '#555555'; // Dark gray floor
+        // 高清化：更好的钢铁渲染
+        ctx.fillStyle = '#555555'; // 基础灰
         ctx.fillRect(x, y, size, size);
         
-        // 1. 基础金属块
-        ctx.fillStyle = '#BDC3C7'; // 银白
-        ctx.fillRect(x, y, size, size);
-
-        // 2. 内部矩形 (增加厚度)
-        ctx.fillStyle = '#FFFFFF';
+        // 金属底色
+        ctx.fillStyle = '#B0BEC5'; // 浅灰蓝
         ctx.fillRect(x + 2, y + 2, size - 4, size - 4);
         
-        ctx.fillStyle = '#95A5A6'; // 稍暗的灰
+        // 内部细节
+        ctx.fillStyle = '#78909C'; // 深灰蓝
         ctx.fillRect(x + 6, y + 6, size - 12, size - 12);
-
-        // 3. 经典的高光“X”交叉线 (模拟反光)
+        
+        // 经典的X形交叉线（反光）
         ctx.beginPath();
-        ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-        ctx.lineWidth = 2;
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + size, y + size);
-        ctx.moveTo(x + size, y);
-        ctx.lineTo(x, y + size);
+        ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+        ctx.lineWidth = Math.max(2, size / 32); // 根据大小自适应
+        ctx.moveTo(x + size * 0.1, y + size * 0.1);
+        ctx.lineTo(x + size * 0.9, y + size * 0.9);
+        ctx.moveTo(x + size * 0.9, y + size * 0.1);
+        ctx.lineTo(x + size * 0.1, y + size * 0.9);
         ctx.stroke();
-
-        // 4. 铆钉细节
-        ctx.fillStyle = '#7F8C8D';
-        const dot = 3;
-        ctx.fillRect(x + 2, y + 2, dot, dot);
-        ctx.fillRect(x + size - 2 - dot, y + 2, dot, dot);
-        ctx.fillRect(x + 2, y + size - 2 - dot, dot, dot);
-        ctx.fillRect(x + size - 2 - dot, y + size - 2 - dot, dot, dot);
+        
+        // 铆钉
+        ctx.fillStyle = '#607D8B';
+        const dotSize = Math.max(2, size / 32);
+        ctx.fillRect(x + 4, y + 4, dotSize, dotSize); // 左上
+        ctx.fillRect(x + size - 4 - dotSize, y + 4, dotSize, dotSize); // 右上
+        ctx.fillRect(x + 4, y + size - 4 - dotSize, dotSize, dotSize); // 左下
+        ctx.fillRect(x + size - 4 - dotSize, y + size - 4 - dotSize, dotSize, dotSize); // 右下
     }
 
     drawWater(x: number, y: number, size: number): void {
         const ctx = this.ctx;
         
-        // Draw floor base first
-        ctx.fillStyle = '#555555'; // Dark gray floor
+        // 绘制基础背景
+        ctx.fillStyle = '#555555';
         ctx.fillRect(x, y, size, size);
         
         // 底色
@@ -238,8 +228,7 @@ export class Renderer {
     drawForest(x: number, y: number, size: number): void {
         const ctx = this.ctx;
         
-        // Draw floor base first
-        ctx.fillStyle = '#555555'; // Dark gray floor
+        ctx.fillStyle = '#555555';
         ctx.fillRect(x, y, size, size);
         
         // 绘制茂密的树叶簇
@@ -266,7 +255,6 @@ export class Renderer {
         ctx.fill();
     }
     
-    // 冰面 - 坦克会滑行
     drawIce(x: number, y: number, size: number): void {
         const ctx = this.ctx;
         
@@ -292,7 +280,6 @@ export class Renderer {
         ctx.stroke();
     }
 
-    // 这里原本是 Floor，在坦克大战中通常对应“冰面”
     drawFloor(x: number, y: number, size: number): void {
         const ctx = this.ctx;
         
@@ -391,12 +378,12 @@ export class Renderer {
           x + size / 2, y + size
         );
         ctx.bezierCurveTo(
-          x + size / 2, y + (size + topCurveHeight) / 2, 
           x + size, y + (size + topCurveHeight) / 2, 
-          x + size, y + topCurveHeight
+          x + size, y + (size + topCurveHeight) / 2, 
+          x + size, y + size
         );
         ctx.bezierCurveTo(
-          x + size, y, 
+          x + size, y + topCurveHeight, 
           x + size / 2, y, 
           x + size / 2, y + size / 5
         );
@@ -443,7 +430,7 @@ export class Renderer {
         }
         
         // 爆炸光芒
-        ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+        ctx.fillStyle = 'rgba(255, 255, 0.3)';
         ctx.beginPath();
         ctx.arc(cx, cy, size * 0.6, 0, Math.PI * 2);
         ctx.fill();
