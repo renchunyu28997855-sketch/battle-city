@@ -59,22 +59,17 @@ export class Screens {
         this.renderer.drawRect(centerX - 190, 290, 380, 30, 'black');
         this.renderer.drawText('按 1 单人  |  按 2 双人', centerX, 305, 'white', 20);
         
-        // Draw start instruction
+        // Draw level select instruction
         this.renderer.drawRect(centerX - 200, 350, 400, 50, 'steel');
         this.renderer.drawRect(centerX - 190, 360, 380, 30, 'black');
-        this.renderer.drawText('按 ENTER 开始游戏', centerX, 375, 'white', 24);
-        
-        // Draw level select instruction
-        this.renderer.drawRect(centerX - 200, 420, 400, 50, 'steel');
-        this.renderer.drawRect(centerX - 190, 430, 380, 30, 'black');
-        this.renderer.drawText('按 L 选择关卡', centerX, 445, 'white', 24);
+        this.renderer.drawText('按 L 选择关卡', centerX, 375, 'white', 24);
         
         // Draw instructions with steel background and black text
         this.renderer.drawRect(centerX - 200, 500, 400, 200, 'steel');
         this.renderer.drawRect(centerX - 190, 510, 380, 180, 'black');
         this.renderer.drawText('操作说明:', centerX, 535, 'white', 22);
         this.renderer.drawText('玩家1: WASD 移动 | 空格 射击', centerX, 565, 'white', 18);
-        this.renderer.drawText('玩家2: IJKL 移动 | Enter 射击', centerX, 590, 'white', 18);
+        this.renderer.drawText('玩家2: 方向键移动 | Enter 射击', centerX, 590, 'white', 18);
         this.renderer.drawText('ESC 键暂停', centerX, 615, 'white', 18);
         this.renderer.drawText('目标: 击败所有坦克', centerX, 645, 'white', 18);
         
@@ -204,23 +199,27 @@ export class Screens {
     drawPaused(): void {
         this.renderer.clear();
         
-        // Draw semi-transparent overlay
-        this.renderer.drawRect(0, 0, 800, 600, 'black');
+        const centerX = 520;
         
-        // Draw pause screen with decorative border
-        for (let i = 0; i < 10; i++) {
-            this.renderer.drawBrick(240 + i * 40, 180, 40);
-            this.renderer.drawBrick(240 + i * 40, 420, 40);
+        // Draw decorative brick border
+        for (let i = 0; i < 13; i++) {
+            this.renderer.drawBrick(220 + i * 48, 250, 48);
+            this.renderer.drawBrick(220 + i * 48, 650, 48);
         }
-        for (let i = 0; i < 6; i++) {
-            this.renderer.drawBrick(240, 180 + i * 40, 40);
-            this.renderer.drawBrick(680, 180 + i * 40, 40);
+        for (let i = 0; i < 9; i++) {
+            this.renderer.drawBrick(220, 250 + i * 48, 48);
+            this.renderer.drawBrick(772, 250 + i * 48, 48);
         }
         
-        this.renderer.drawRect(250, 200, 332, 120, 'orange');
-        this.renderer.drawRect(260, 210, 312, 100, 'black');
-        this.renderer.drawText('暂停', 416, 250, 'white', 32);
-        this.renderer.drawText('按 ESC 继续', 416, 290, 'white', 24);
+        // Draw pause title with orange background and black text
+        this.renderer.drawRect(centerX - 200, 350, 400, 50, 'orange');
+        this.renderer.drawRect(centerX - 190, 360, 380, 30, 'black');
+        this.renderer.drawText('暂停', centerX, 375, 'white', 32);
+        
+        // Draw continue instruction
+        this.renderer.drawRect(centerX - 200, 430, 400, 50, 'steel');
+        this.renderer.drawRect(centerX - 190, 440, 380, 30, 'black');
+        this.renderer.drawText('按 ESC 继续', centerX, 455, 'white', 24);
     }
 
     /**
@@ -229,34 +228,36 @@ export class Screens {
     drawGameOver(_score: number): void {
         this.renderer.clear();
         
+        const centerX = 520;
+        
         // Draw decorative brick border
-        for (let i = 0; i < 10; i++) {
-            this.renderer.drawBrick(180 + i * 40, 80, 40);
-            this.renderer.drawBrick(180 + i * 40, 520, 40);
+        for (let i = 0; i < 13; i++) {
+            this.renderer.drawBrick(220 + i * 48, 100, 48);
+            this.renderer.drawBrick(220 + i * 48, 800, 48);
         }
-        for (let i = 0; i < 12; i++) {
-            this.renderer.drawBrick(180, 80 + i * 40, 40);
-            this.renderer.drawBrick(780, 80 + i * 40, 40);
+        for (let i = 0; i < 15; i++) {
+            this.renderer.drawBrick(220, 100 + i * 48, 48);
+            this.renderer.drawBrick(772, 100 + i * 48, 48);
         }
         
         // Draw game over title with orange background and black text
-        this.renderer.drawRect(200, 100, 400, 60, 'orange');
-        this.renderer.drawRect(210, 110, 380, 40, 'black');
-        this.renderer.drawText('游戏结束', 400, 130, 'white', 28);
+        this.renderer.drawRect(centerX - 200, 180, 400, 50, 'orange');
+        this.renderer.drawRect(centerX - 190, 190, 380, 30, 'black');
+        this.renderer.drawText('游戏结束', centerX, 205, 'white', 32);
         
         // Draw score
-        this.renderer.drawRect(200, 200, 400, 60, 'steel');
-        this.renderer.drawRect(210, 210, 380, 40, 'black');
-        this.renderer.drawText(`得分: ${_score}`, 400, 230, 'white', 24);
+        this.renderer.drawRect(centerX - 200, 270, 400, 50, 'steel');
+        this.renderer.drawRect(centerX - 190, 280, 380, 30, 'black');
+        this.renderer.drawText(`得分: ${_score}`, centerX, 295, 'white', 24);
         
-        // Draw restart instruction with steel background and black text
-        this.renderer.drawRect(200, 300, 400, 60, 'steel');
-        this.renderer.drawRect(210, 310, 380, 40, 'black');
-        this.renderer.drawText('按 R 重新开始', 400, 330, 'white', 24);
+        // Draw restart instruction
+        this.renderer.drawRect(centerX - 200, 350, 400, 50, 'steel');
+        this.renderer.drawRect(centerX - 190, 360, 380, 30, 'black');
+        this.renderer.drawText('按 R 重新开始', centerX, 375, 'white', 24);
         
         // Draw tank decoration
-        this.renderer.drawTank(300, 500, 40, 'right', 'green');
-        this.renderer.drawTank(500, 500, 40, 'left', 'green');
+        this.renderer.drawTank(centerX - 150, 500, 48, 'up', 'green');
+        this.renderer.drawTank(centerX + 150, 500, 48, 'down', 'green');
     }
 
     /**
@@ -265,22 +266,22 @@ export class Screens {
     drawLevelComplete(): void {
         this.renderer.clear();
         
-        // Draw decorative brick border
+        // Draw decorative brick border (centered)
         for (let i = 0; i < 10; i++) {
-            this.renderer.drawBrick(180 + i * 40, 80, 40);
-            this.renderer.drawBrick(180 + i * 40, 520, 40);
+            this.renderer.drawBrick(160 + i * 40, 60, 40);
+            this.renderer.drawBrick(160 + i * 40, 500, 40);
         }
         for (let i = 0; i < 12; i++) {
-            this.renderer.drawBrick(180, 80 + i * 40, 40);
-            this.renderer.drawBrick(780, 80 + i * 40, 40);
+            this.renderer.drawBrick(160, 60 + i * 40, 40);
+            this.renderer.drawBrick(640, 60 + i * 40, 40);
         }
         
-        // Draw level complete title with orange background and black text
-        this.renderer.drawRect(200, 100, 400, 50, 'orange');
-        this.renderer.drawRect(210, 110, 380, 30, 'black');
-        this.renderer.drawText('关卡完成', 400, 125, 'white', 32);
+        // Draw level complete title with orange background and black text (centered)
+        this.renderer.drawRect(180, 80, 440, 50, 'orange');
+        this.renderer.drawRect(190, 90, 420, 30, 'black');
+        this.renderer.drawText('关卡完成', 400, 105, 'white', 32);
         
-        // Draw next level instruction with steel background and black text
+        // Draw next level instruction with steel background and black text (centered)
         this.renderer.drawRect(200, 250, 400, 50, 'steel');
         this.renderer.drawRect(210, 260, 380, 30, 'black');
         this.renderer.drawText('进入下一关...', 400, 275, 'white', 24);

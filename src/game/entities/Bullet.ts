@@ -19,20 +19,17 @@ export class Bullet {
   isEnemyBullet: boolean = false;
   powerLevel: number = 0;
   color: string = 'white';
-  canPenetrateBrick: boolean = false;
-  canPenetrateSteel: boolean = false;
-  isSteel: boolean = false;
-  brickPenetrationCount: number = 1;  // 一次能打掉的砖块数量
+  brickPenetrationCount: number = 1;  // 打掉指定数量的砖块后消失
   canPenetrateTanks: boolean = false;  // 是否可以穿透坦克
   
-  // 反弹相关属性
-  isBounceBullet: boolean = false;      // 是否处于反弹状态
-  bounceCount: number = 0;              // 当前反弹次数
-  maxBounces: number = 3;               // 最大反弹次数
+  // 反弹相关属性（已禁用）
+  isBounceBullet: boolean = false;      // 是否处于反弹状态（已禁用）
+  bounceCount: number = 0;              // 当前反弹次数（已禁用）
+  maxBounces: number = 0;               // 最大反弹次数（0=不反弹）
   speedVector: Vector2D;                // 速度向量 (像素/秒)
   previousX: number = 0;                // 上一帧位置 (用于碰撞检测)
   previousY: number = 0;
-  bounceEnergyLoss: number = 1.0;       // 反弹能量损失 (1.0 = 无损失, 0.8 = 每次损失20%)
+  brickDestroyedCount: number = 0;      // 已销毁的砖块数量
   
   private lastFiredTime: number = 0;
   private currentCooldown: number = 900;
@@ -62,16 +59,12 @@ export class Bullet {
     const level = Math.min(Math.max(powerLevel, 1), 3);
     const config = getBulletConfig(level);
     
-    this.speed = config.speed;
     this.currentCooldown = config.fireCooldown;
-    this.canPenetrateBrick = config.canPenetrateBrick;
-    this.canPenetrateSteel = config.canPenetrateSteel;
-    this.isSteel = config.canPenetrateSteel;
     this.brickPenetrationCount = config.brickPenetrationCount;
-    // Level 3 can penetrate tanks
-    this.canPenetrateTanks = config.canPenetrateMultiple !== 0;
-    // 设置反弹次数（从配置读取，0=不反弹）
-    this.maxBounces = config.maxBounces;
+    // 反弹系统已禁用
+    this.maxBounces = 0;
+    
+    this.speed = config.speed;
     
     // Override color for special power-ups
     if (specialType === 'star') {
@@ -85,10 +78,9 @@ export class Bullet {
     // 初始化速度向量 (根据方向)
     this.initSpeedVector(direction);
     
-    // 重置反弹状态
+    // 反弹系统已禁用
     this.isBounceBullet = false;
     this.bounceCount = 0;
-    this.bounceEnergyLoss = 1.0;
     
     return true;
   }
@@ -114,28 +106,18 @@ export class Bullet {
   }
 
   /**
-   * 设置反弹状态，使用反射向量
-   * @param reflectedVector 反射后的速度向量
+   * 设置反弹状态（已禁用）
    */
-  setReflection(reflectedVector: Vector2D): void {
-    this.isBounceBullet = true;
-    this.bounceCount++;
-    
-    // 应用能量损失
-    const damping = Math.pow(this.bounceEnergyLoss, this.bounceCount);
-    this.speedVector = reflectedVector.multiply(damping);
-    
-    // 检查是否已达到最大反弹次数
-    if (this.bounceCount >= this.maxBounces) {
-      this.active = false;
-    }
+  setReflection(_reflectedVector: Vector2D): void {
+    // 反弹系统已禁用，忽略此方法
+    console.warn('反弹系统已禁用，setReflection 被忽略');
   }
 
   /**
-   * 检查是否还能继续反弹
+   * 检查是否还能继续反弹（已禁用）
    */
   canStillBounce(): boolean {
-    return this.bounceCount < this.maxBounces;
+    return false;
   }
 
   update(deltaTime: number): void {
@@ -159,13 +141,10 @@ export class Bullet {
     this.active = false;
     this.x = 0;
     this.y = 0;
-    // 重置所有穿透属性,避免复用时属性残留
-    this.canPenetrateBrick = false;
-    this.canPenetrateSteel = false;
-    this.isSteel = false;
+    // 重置所有属性,避免复用时属性残留
     this.brickPenetrationCount = 1;
-    this.canPenetrateTanks = false;
     this.powerLevel = 0;
+    this.brickDestroyedCount = 0;
     
     // 重置反弹相关属性
     this.isBounceBullet = false;

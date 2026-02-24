@@ -1,17 +1,16 @@
 import { Bullet } from '../entities/Bullet';
+import { getBrickPenetrationCount } from '../config/BulletConfig';
 import { Tank } from '../entities/Tank';
 import { PlayerTank } from '../entities/PlayerTank';
 import { EnemyTank } from '../entities/EnemyTank';
 import { MapSystem, TileType } from './MapSystem';
 import { SoundManager } from '../../core/SoundManager';
-import { Vector2D } from '../utils/Vector2D';
 
 export enum CollisionFace {
   Top,
   Bottom,
   Left,
-  Right,
-  None
+  Right
 }
 
 export class CollisionSystem {
@@ -24,19 +23,7 @@ export class CollisionSystem {
     this.soundManager = SoundManager.getInstance();
   }
 
-  /**
-   * Check if two rectangles collide using Axis-Aligned Bounding Box (AABB) collision
-   * @param x1 X position of first rectangle
-   * @param y1 Y position of first rectangle
-   * @param width1 Width of first rectangle
-   * @param height1 Height of first rectangle
-   * @param x2 X position of second rectangle
-   * @param y2 Y position of second rectangle
-   * @param width2 Width of second rectangle
-   * @param height2 Height of second rectangle
-   * @returns True if rectangles collide
-   */
-  private checkAABB(x1: number, y1: number, width1: number, height1: number, 
+  private checkAABB(x1: number, y1: number, width1: number, height1: number,
                    x2: number, y2: number, width2: number, height2: number): boolean {
     return x1 < x2 + width2 &&
            x1 + width1 > x2 &&
@@ -44,20 +31,6 @@ export class CollisionSystem {
            y1 + height1 > y2;
   }
 
-  /**
-   * 识别子弹与矩形碰撞的面
-   * @param bulletPrevX 子弹上一帧的X位置
-   * @param bulletPrevY 子弹上一帧的Y位置
-   * @param bulletCurrX 子弹当前的X位置
-   * @param bulletCurrY 子弹当前的Y位置
-   * @param bulletWidth 子弹宽度
-   * @param bulletHeight 子弹高度
-   * @param rectX 矩形左边界
-   * @param rectY 矩形上边界
-   * @param rectWidth 矩形宽度
-   * @param rectHeight 矩形高度
-   * @returns 碰撞的面
-   */
   private detectCollisionFace(
     bulletPrevX: number, bulletPrevY: number,
     bulletCurrX: number, bulletCurrY: number,
@@ -66,221 +39,145 @@ export class CollisionSystem {
   ): CollisionFace {
     const prevLeft = bulletPrevX;
     const prevTop = bulletPrevY;
-    const prevRight = bulletPrevX + bulletWidth;
-    const prevBottom = bulletPrevY + bulletHeight;
-
     const currLeft = bulletCurrX;
     const currTop = bulletCurrY;
-    const currRight = bulletCurrX + bulletWidth;
-    const currBottom = bulletCurrY + bulletHeight;
-
     const rectLeft = rectX;
     const rectTop = rectY;
     const rectRight = rectX + rectWidth;
     const rectBottom = rectY + rectHeight;
 
-    // 判断碰撞面（从上方进入）
-    if (prevBottom <= rectTop && currBottom > rectTop) {
+    // 简化逻辑：检测子弹是否从砖块边缘穿过
+    // 如果子弹中心点穿过砖块边缘，则返回对应的碰撞面
+    const prevCenterX = prevLeft + bulletWidth / 2;
+    const prevCenterY = prevTop + bulletHeight / 2;
+    const currCenterX = currLeft + bulletWidth / 2;
+    const currCenterY = currTop + bulletHeight / 2;
+
+    // 检测Y方向的运动
+    if (prevCenterY <= rectTop && currCenterY > rectTop) {
       return CollisionFace.Top;
     }
-    
-    // 判断碰撞面（从下方进入）
-    if (prevTop >= rectBottom && currTop < rectBottom) {
+    if (prevCenterY >= rectBottom && currCenterY < rectBottom) {
       return CollisionFace.Bottom;
     }
-    
-    // 判断碰撞面（从左方进入）
-    if (prevRight <= rectLeft && currRight > rectLeft) {
+    if (prevCenterX <= rectLeft && currCenterX > rectLeft) {
       return CollisionFace.Left;
     }
-    
-    // 判断碰撞面（从右方进入）
-    if (prevLeft >= rectRight && currLeft < rectRight) {
+    if (prevCenterX >= rectRight && currCenterX < rectRight) {
       return CollisionFace.Right;
     }
-
-    return CollisionFace.None;
+    
+    // 如果没有穿过，返回默认碰撞面
+    return CollisionFace.Top;
   }
 
-  /**
-   * 根据碰撞面计算反射向量
-   * @param face 碰撞的面
-   * @param incomingVector 入射向量
-   * @returns 反射向量
-   */
-  private getReflectionVector(face: CollisionFace, incomingVector: Vector2D): Vector2D {
-    let normalVector: Vector2D;
-
-    switch (face) {
-      case CollisionFace.Top:
-      case CollisionFace.Bottom:
-        // Y方向反转（水平砖块面）
-        normalVector = new Vector2D(0, face === CollisionFace.Top ? 1 : -1);
-        break;
-      case CollisionFace.Left:
-      case CollisionFace.Right:
-        // X方向反转（竖直砖块面）
-        normalVector = new Vector2D(face === CollisionFace.Left ? 1 : -1, 0);
-        break;
-      default:
-        return incomingVector;
-    }
-
-    // 使用反射公式计算反射向量: r = v - 2(v·n)n
-    return incomingVector.reflect(normalVector);
-  }
-
-  /**
-   * 处理子弹与砖块的碰撞（支持反弹）
-   * @param bullet 子弹对象
-   */
   handleBulletCollisions(bullet: Bullet): void {
     if (!bullet.active) return;
-    
-    const brickPenetrationCount = bullet.brickPenetrationCount;
-    const maxBricksToDestroy = (brickPenetrationCount !== undefined && brickPenetrationCount !== null) ? brickPenetrationCount : 1;
-    const canPenetrateBrick = bullet.canPenetrateBrick;
-    const powerLevel = bullet.powerLevel;
-    
-    console.log(`[Bullet Collision] powerLevel=${powerLevel}, brickPenetrationCount=${brickPenetrationCount}, maxBricksToDestroy=${maxBricksToDestroy}, canPenetrateBrick=${canPenetrateBrick}`);
-    
-    // 计算子弹覆盖的矩形范围(像素坐标)
-    const bulletLeft = bullet.x;
-    const bulletTop = bullet.y;
-    const bulletRight = bullet.x + bullet.width;
-    const bulletBottom = bullet.y + bullet.height;
-    
-    // 转换为瓦片坐标范围
-    const minTileX = Math.floor(bulletLeft / this.TILE_SIZE);
-    const maxTileX = Math.floor((bulletRight - 1) / this.TILE_SIZE);
-    const minTileY = Math.floor(bulletTop / this.TILE_SIZE);
-    const maxTileY = Math.floor((bulletBottom - 1) / this.TILE_SIZE);
-    
-    // 记录已破坏的砖块和钢铁数量
-    let bricksDestroyed = 0;
-    let steelDestroyed = 0;
-    
-    // 记录碰撞的砖块（用于反弹逻辑）
-    let firstBrickCollision: { face: CollisionFace, tileX: number, tileY: number } | null = null;
-    
-    // 按瓦片坐标顺序处理(先Y后X)
-    for (let tileY = minTileY; tileY <= maxTileY; tileY++) {
-      for (let tileX = minTileX; tileX <= maxTileX; tileX++) {
-        const tileType = this.mapSystem.getTile(tileX, tileY);
-        
-        switch (tileType) {
-          case TileType.Brick:
-            // 检测碰撞面
-            const tilePixelX = tileX * this.TILE_SIZE;
-            const tilePixelY = tileY * this.TILE_SIZE;
-            const face = this.detectCollisionFace(
-              bullet.previousX, bullet.previousY,
-              bullet.x, bullet.y,
-              bullet.width, bullet.height,
-              tilePixelX, tilePixelY,
-              this.TILE_SIZE, this.TILE_SIZE
-            );
 
-            // 如果支持反弹且还能反弹，则触发反弹
-            if (bullet.canStillBounce() && face !== CollisionFace.None) {
-              if (!firstBrickCollision) {
-                firstBrickCollision = { face, tileX, tileY };
-              }
-            } else {
-              // 破坏砖块
-              this.mapSystem.setTile(tileX, tileY, TileType.Empty);
-              bricksDestroyed++;
-              
-              // 检查是否已达穿透上限
-              if (bricksDestroyed >= maxBricksToDestroy) {
-                bullet.active = false;
-                return;
-              }
-            }
-            break;
-            
-          case TileType.Steel:
-            // 普通子弹打钢铁上只能停止，不能反弹也不能穿透
-            // 三级子弹可以打钢铁
-            if (bullet.isSteel) {
-              this.mapSystem.setTile(tileX, tileY, TileType.Empty);
-              steelDestroyed++;
-              if (steelDestroyed >= 1) {
-                bullet.active = false;
-                return;
-              }
-            } else {
-              bullet.active = false;
-              this.soundManager.playMetalHit();
-              return;
-            }
-            break;
-            
-          case TileType.Water:
-          case TileType.Base:
-          case TileType.Eagle:
-            bullet.active = false;
-            if (tileType === TileType.Eagle) {
-              (window as any).eagleDestroyed = true;
-            }
-            return;
-            
-          case TileType.Forest:
-          case TileType.Floor:
-          case TileType.Empty:
-          default:
-            // 不影响,继续
-            break;
+    const powerLevel = bullet.powerLevel;
+    const maxBricksToDestroy = getBrickPenetrationCount(powerLevel);
+
+    // 1. 检测砖块碰撞
+    const brickCollisions: { tileX: number, tileY: number, face: CollisionFace }[] = [];
+
+    const startTileX = Math.floor(Math.min(bullet.previousX, bullet.x) / this.TILE_SIZE);
+    const endTileX = Math.floor((Math.max(bullet.previousX, bullet.x) + bullet.width) / this.TILE_SIZE);
+    const startTileY = Math.floor(Math.min(bullet.previousY, bullet.y) / this.TILE_SIZE);
+    const endTileY = Math.floor((Math.max(bullet.previousY, bullet.y) + bullet.height) / this.TILE_SIZE);
+
+    for (let tileY = startTileY; tileY <= endTileY; tileY++) {
+      for (let tileX = startTileX; tileX <= endTileX; tileX++) {
+        const tileType = this.mapSystem.getTile(tileX, tileY);
+        if (tileType === TileType.Brick) {
+          const tilePixelX = tileX * this.TILE_SIZE;
+          const tilePixelY = tileY * this.TILE_SIZE;
+          const face = this.detectCollisionFace(
+            bullet.previousX, bullet.previousY,
+            bullet.x, bullet.y,
+            bullet.width, bullet.height,
+            tilePixelX, tilePixelY,
+            this.TILE_SIZE, this.TILE_SIZE
+          );
+          brickCollisions.push({ tileX, tileY, face });
         }
       }
     }
 
-    // 处理反弹逻辑
-    if (firstBrickCollision && bullet.canStillBounce()) {
-      const reflectedVector = this.getReflectionVector(
-        firstBrickCollision.face,
-        bullet.speedVector
-      );
-      bullet.setReflection(reflectedVector);
-      
-      // 销毁碰撞的砖块
-      const { tileX, tileY, face } = firstBrickCollision;
+    // 2. 处理砖块穿透
+    const canDestroyCount = maxBricksToDestroy - bullet.brickDestroyedCount;
+    const destroyCount = Math.min(brickCollisions.length, canDestroyCount);
+    for (let i = 0; i < destroyCount; i++) {
+      const { tileX, tileY } = brickCollisions[i];
       this.mapSystem.setTile(tileX, tileY, TileType.Empty);
-      
-      // 将子弹移出碰撞区域，避免连续碰撞
-      const tilePixelX = tileX * this.TILE_SIZE;
-      const tilePixelY = tileY * this.TILE_SIZE;
-      const pushDistance = 2; // 推出一点距离
-      
-      switch (face) {
-        case CollisionFace.Top:
-          bullet.y = tilePixelY - bullet.height - pushDistance;
-          break;
-        case CollisionFace.Bottom:
-          bullet.y = tilePixelY + this.TILE_SIZE + pushDistance;
-          break;
-        case CollisionFace.Left:
-          bullet.x = tilePixelX - bullet.width - pushDistance;
-          break;
-        case CollisionFace.Right:
-          bullet.x = tilePixelX + this.TILE_SIZE + pushDistance;
-          break;
+      bullet.brickDestroyedCount++;
+    }
+
+    // 3. 处理砖块碰撞后的子弹状态
+    if (brickCollisions.length > 0) {
+      if (powerLevel < 3) {
+        // 1,2级子弹：打1块砖后消失
+        bullet.active = false;
+      } else {
+        // 3级子弹：打2块砖后消失，否则继续穿透
+        if (bullet.brickDestroyedCount >= 2) {
+          bullet.active = false;
+        }
       }
-      
-      // 更新上一帧位置，避免立即再次碰撞
-      bullet.previousX = bullet.x;
-      bullet.previousY = bullet.y;
-      
-      console.log(`[Bounce] Bullet bounced off brick at (${tileX}, ${tileY})`);
+    }
+
+    // 4. 检测钢砖碰撞
+    const steelStartX = Math.floor(Math.min(bullet.previousX, bullet.x) / this.TILE_SIZE);
+    const steelEndX = Math.floor((Math.max(bullet.previousX, bullet.x) + bullet.width) / this.TILE_SIZE);
+    const steelStartY = Math.floor(Math.min(bullet.previousY, bullet.y) / this.TILE_SIZE);
+    const steelEndY = Math.floor((Math.max(bullet.previousY, bullet.y) + bullet.height) / this.TILE_SIZE);
+
+    for (let tileY = steelStartY; tileY <= steelEndY; tileY++) {
+      for (let tileX = steelStartX; tileX <= steelEndX; tileX++) {
+        const tileType = this.mapSystem.getTile(tileX, tileY);
+        if (tileType === TileType.Steel) {
+          if (powerLevel === 3) {
+            // 3级子弹：打掉1块钢砖后消失
+            this.mapSystem.setTile(tileX, tileY, TileType.Empty);
+            bullet.active = false;
+            this.soundManager.playMetalHit();
+          } else {
+            // 1,2级子弹：碰到钢砖后立即消失
+            bullet.active = false;
+          }
+          return;
+        }
+      }
+    }
+
+    // 5. 检测大本营(Eagle)碰撞
+    for (let tileY = steelStartY; tileY <= steelEndY; tileY++) {
+      for (let tileX = steelStartX; tileX <= steelEndX; tileX++) {
+        const tileType = this.mapSystem.getTile(tileX, tileY);
+        if (tileType === TileType.Eagle) {
+          // 大本营被击中，标记游戏结束
+          (window as any).eagleDestroyed = true;
+          bullet.active = false;
+          return;
+        }
+      }
     }
   }
 
-  /**
-   * Handle bullet collision with tanks
-   * @param bullet Bullet to check collisions for
-   * @param tanks List of tanks to check against
-   * @returns True if bullet hit a tank, false otherwise
-   */
+  handleBulletBulletCollisions(bullet: Bullet, bullets: Bullet[]): void {
+    if (!bullet.active) return;
+    const bulletPower = bullet.powerLevel;
+    
+    for (const otherBullet of bullets) {
+      if (!otherBullet.active || otherBullet === bullet) continue;
+      if (bullet.powerLevel === otherBullet.powerLevel && bulletPower > 0) {
+        // 1,2,3级子弹互相抵消
+        bullet.active = false;
+        otherBullet.active = false;
+        break;
+      }
+    }
+  }
+
   handleBulletTankCollisions(bullet: Bullet, tanks: (Tank | PlayerTank | EnemyTank)[]): boolean {
     if (!bullet.active) return false;
 
@@ -290,28 +187,21 @@ export class CollisionSystem {
     const bulletY = bullet.y;
 
     for (const tank of tanks) {
-      // Skip dead tanks
       if (tank.health <= 0) continue;
-      
-      // Check if bullet collides with tank
       const tankX = tank.x;
       const tankY = tank.y;
       const tankWidth = tank.width;
       const tankHeight = tank.height;
 
-      if (this.checkAABB(bulletX, bulletY, bulletWidth, bulletHeight, 
+      if (this.checkAABB(bulletX, bulletY, bulletWidth, bulletHeight,
                         tankX, tankY, tankWidth, tankHeight)) {
-        // Damage tank
         tank.health--;
         bullet.active = false;
-        
-        // If tank dies, it's removed from the game
-        if (tank.health <= 0) {
-          return true; // Tank destroyed
-        }
+        if (tank.health <= 0) return true;
       }
     }
-
     return false;
   }
+
+
 }
