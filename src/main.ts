@@ -104,15 +104,15 @@ let enemiesSpawned = 0;
 // Initialize player tank
 function initPlayerTank() {
     playerTank = new PlayerTank(mapSystem);
-    playerTank.x = 4 * 64;
-    playerTank.y = 12 * 64;
+    playerTank.x = 4 * 80;
+    playerTank.y = 12 * 80;
 }
 
 // Initialize player 2 tank (for two-player mode)
 function initPlayer2Tank() {
     player2Tank = new PlayerTank(mapSystem);
-    player2Tank.x = 8 * 64;  // Different spawn position on the right side
-    player2Tank.y = 12 * 64;
+    player2Tank.x = 8 * 80;  // Different spawn position on the right side
+    player2Tank.y = 12 * 80;
     player2Tank.health = 3;
     player2Tank.bulletLevel = 1;
 }
@@ -395,8 +395,8 @@ function update(deltaTime: number) {
                     if (bullet && playerTank) {
                         // Use bullet.init() to properly initialize all bullet properties from unified config
                         bullet.init(
-                            playerTank.x + 24,
-                            playerTank.y + 24,
+                            playerTank.x + 32,
+                            playerTank.y + 32,
                             playerTank.direction as unknown as BulletDirection,
                             now,
                             playerTank.bulletLevel,
@@ -472,8 +472,8 @@ function update(deltaTime: number) {
                     const bullet2 = bulletPool.acquire();
                     if (bullet2 && player2Tank) {
                         bullet2.init(
-                            player2Tank.x + 24,
-                            player2Tank.y + 24,
+                            player2Tank.x + 32,
+                            player2Tank.y + 32,
                             player2Tank.direction as unknown as BulletDirection,
                             now2,
                             player2Tank.bulletLevel,
@@ -892,20 +892,25 @@ function render() {
             }
             
             // Draw HUD - Player health as hearts
+            // Draw HUD - Player 1 health (left side)
             if (playerTank) {
                 for (let i = 0; i < playerTank.health; i++) {
                     renderer.drawHeart(20 + i * 25, 20);
                 }
             }
             
-            // Draw HUD - Level
-            renderer.drawText(`关卡: ${currentLevel}`, 750, 30, 'white', 20);
+            // Draw HUD - Player 2 health (top right, two-player mode)
+            if (gameMode === GameMode.TwoPlayer && player2Tank) {
+                for (let i = 0; i < player2Tank.health; i++) {
+                    renderer.drawHeart(920 + i * 25, 20);
+                }
+            }
             
-            // Draw HUD - Remaining enemies
+            // Draw HUD - Level and Remaining enemies (center top)
             const maxEnemiesHUD = (window as any).MAX_ENEMIES_PER_LEVEL || MAX_ENEMIES_PER_LEVEL;
-            // 剩余敌人 = 总数 - 已生成的 + 场上还活着的
             const remainingEnemies = Math.max(0, maxEnemiesHUD - enemiesSpawned + enemies.length);
-            renderer.drawText(`敌人: ${remainingEnemies}`, 750, 60, 'white', 20);
+            renderer.drawText(`关卡: ${currentLevel}`, 480, 30, 'white', 20);
+            renderer.drawText(`敌人: ${remainingEnemies}`, 480, 60, 'white', 20);
             
             // Draw power-ups
             for (const pu of powerUpManager.getActivePowerUps()) {

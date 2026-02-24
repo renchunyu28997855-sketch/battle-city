@@ -25,8 +25,8 @@ export class Tank {
         this.y = y;
         this.direction = Direction.Up;
         this.speed = 128;
-        this.width = 64;
-        this.height = 64;
+        this.width = 80;
+        this.height = 80;
         this.health = 1;
         this.scoreValue = 0;
         this.bulletLevel = 1;

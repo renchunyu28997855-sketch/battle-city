@@ -37,43 +37,50 @@ export class Screens {
     drawMenu(): void {
         this.renderer.clear();
         
+        const centerX = 520;  // Center of 1040 width
+        
         // Draw decorative brick border
-        for (let i = 0; i < 10; i++) {
-            this.renderer.drawBrick(180 + i * 40, 80, 40);
-            this.renderer.drawBrick(180 + i * 40, 520, 40);
+        for (let i = 0; i < 13; i++) {
+            this.renderer.drawBrick(220 + i * 48, 100, 48);
+            this.renderer.drawBrick(220 + i * 48, 900, 48);
         }
-        for (let i = 0; i < 12; i++) {
-            this.renderer.drawBrick(180, 80 + i * 40, 40);
-            this.renderer.drawBrick(780, 80 + i * 40, 40);
+        for (let i = 0; i < 17; i++) {
+            this.renderer.drawBrick(220, 100 + i * 48, 48);
+            this.renderer.drawBrick(772, 100 + i * 48, 48);
         }
         
         // Draw title with orange background and black text
-        this.renderer.drawRect(200, 100, 400, 50, 'orange');
-        this.renderer.drawRect(210, 110, 380, 30, 'black');
-        this.renderer.drawText('BATTLE CITY', 400, 125, 'white', 32);
+        this.renderer.drawRect(centerX - 200, 180, 400, 50, 'orange');
+        this.renderer.drawRect(centerX - 190, 190, 380, 30, 'black');
+        this.renderer.drawText('BATTLE CITY', centerX, 205, 'white', 32);
         
-        // Draw start instruction with steel background and black text
-        this.renderer.drawRect(200, 200, 400, 50, 'steel');
-        this.renderer.drawRect(210, 210, 380, 30, 'black');
-        this.renderer.drawText('按 ENTER 开始游戏', 400, 225, 'white', 24);
+        // Draw mode selection instruction
+        this.renderer.drawRect(centerX - 200, 280, 400, 50, 'steel');
+        this.renderer.drawRect(centerX - 190, 290, 380, 30, 'black');
+        this.renderer.drawText('按 1 单人  |  按 2 双人', centerX, 305, 'white', 20);
+        
+        // Draw start instruction
+        this.renderer.drawRect(centerX - 200, 350, 400, 50, 'steel');
+        this.renderer.drawRect(centerX - 190, 360, 380, 30, 'black');
+        this.renderer.drawText('按 ENTER 开始游戏', centerX, 375, 'white', 24);
         
         // Draw level select instruction
-        this.renderer.drawRect(200, 270, 400, 50, 'steel');
-        this.renderer.drawRect(210, 280, 380, 30, 'black');
-        this.renderer.drawText('按 L 选择关卡', 400, 295, 'white', 24);
+        this.renderer.drawRect(centerX - 200, 420, 400, 50, 'steel');
+        this.renderer.drawRect(centerX - 190, 430, 380, 30, 'black');
+        this.renderer.drawText('按 L 选择关卡', centerX, 445, 'white', 24);
         
         // Draw instructions with steel background and black text
-        this.renderer.drawRect(200, 350, 400, 180, 'steel');
-        this.renderer.drawRect(210, 360, 380, 160, 'black');
-        this.renderer.drawText('操作说明:', 400, 380, 'white', 24);
-        this.renderer.drawText('WASD 键移动', 400, 410, 'white', 20);
-        this.renderer.drawText('空格键射击', 400, 435, 'white', 20);
-        this.renderer.drawText('ESC 键暂停', 400, 460, 'white', 20);
-        this.renderer.drawText('目标: 击败所有坦克', 400, 485, 'white', 20);
+        this.renderer.drawRect(centerX - 200, 500, 400, 200, 'steel');
+        this.renderer.drawRect(centerX - 190, 510, 380, 180, 'black');
+        this.renderer.drawText('操作说明:', centerX, 535, 'white', 22);
+        this.renderer.drawText('玩家1: WASD 移动 | 空格 射击', centerX, 565, 'white', 18);
+        this.renderer.drawText('玩家2: IJKL 移动 | Enter 射击', centerX, 590, 'white', 18);
+        this.renderer.drawText('ESC 键暂停', centerX, 615, 'white', 18);
+        this.renderer.drawText('目标: 击败所有坦克', centerX, 645, 'white', 18);
         
         // Draw tank decoration
-        this.renderer.drawTank(300, 500, 40, 'up', 'green');
-        this.renderer.drawTank(500, 500, 40, 'down', 'green');
+        this.renderer.drawTank(centerX - 150, 750, 48, 'up', 'blue');
+        this.renderer.drawTank(centerX + 150, 750, 48, 'down', 'green');
     }
 
     /**
