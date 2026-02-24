@@ -70,6 +70,8 @@ export class Bullet {
     this.brickPenetrationCount = config.brickPenetrationCount;
     // Level 3 can penetrate tanks
     this.canPenetrateTanks = config.canPenetrateMultiple !== 0;
+    // 设置反弹次数（从配置读取，0=不反弹）
+    this.maxBounces = config.maxBounces;
     
     // Override color for special power-ups
     if (specialType === 'star') {

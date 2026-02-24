@@ -17,6 +17,9 @@ export interface BulletConfig {
   canPenetrateMultiple: number; // 最多穿透多少个敌人 (-1=无限穿透)
   brickPenetrationCount: number; // 一次能打掉的砖块数量
   
+  // 反弹能力 (0=不反弹, >0=反弹次数)
+  maxBounces: number;       // 最大反弹次数
+  
   // 音效
   penetrateSound: 'none' | 'metal' | 'explosion';  // 穿透时的音效
   
@@ -39,6 +42,8 @@ export const BULLET_LEVEL_CONFIG: Record<number, BulletConfig> = {
     canPenetrateMultiple: 0,
     brickPenetrationCount: 1,  // 一次打1块砖
     
+    maxBounces: 0,        // 不反弹
+    
     penetrateSound: 'none',
     
     tankColor: 'blue',
@@ -57,6 +62,8 @@ export const BULLET_LEVEL_CONFIG: Record<number, BulletConfig> = {
     canPenetrateMultiple: 0,  // 不能穿透敌人
     brickPenetrationCount: 1,  // 一次打1块砖
     
+    maxBounces: 0,        // 不反弹
+    
     penetrateSound: 'none',
     
     tankColor: 'blue',
@@ -74,6 +81,8 @@ export const BULLET_LEVEL_CONFIG: Record<number, BulletConfig> = {
     canPenetrateSteel: true,   // 可以穿透钢铁
     canPenetrateMultiple: -1,   // -1表示无限穿透 (非装甲敌人)
     brickPenetrationCount: 2,  // 一次打掉2块砖
+    
+    maxBounces: 0,        // 不反弹
     
     penetrateSound: 'metal',   // 穿透钢铁音效
     
