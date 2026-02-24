@@ -99,6 +99,6 @@ export class MapSystem {
     }
 
     getDimensions() { return { width: 13, height: 13 }; }
-    getTileSize() { return 64; }
-    getTotalSize() { return { width: 832, height: 832 }; }
+    getTileSize() { return 80; }
+    getTotalSize() { return { width: 1040, height: 1040 }; }
 }

@@ -150,7 +150,7 @@ export class Bullet {
     this.y += this.speedVector.y * deltaTime;
 
     // 出界检查
-    if (this.x < -16 || this.x > 832 || this.y < -16 || this.y > 832) {
+    if (this.x < -16 || this.x > 1040 || this.y < -16 || this.y > 1040) {
       this.active = false;
     }
   }

@@ -17,7 +17,7 @@ export enum CollisionFace {
 export class CollisionSystem {
   private mapSystem: MapSystem;
   private soundManager: SoundManager;
-  private readonly TILE_SIZE = 64;
+  private readonly TILE_SIZE = 80;
 
   constructor(mapSystem: MapSystem) {
     this.mapSystem = mapSystem;

@@ -1,10 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Battle City</title>
+    <title>Battle City - 坦克大战</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             margin: 0;
             padding: 0;
@@ -12,20 +17,45 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #000;
-            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            overflow: hidden;
         }
         #game-container {
             position: relative;
+            box-shadow: 
+                0 0 40px rgba(0, 255, 255, 0.3),
+                0 0 80px rgba(0, 150, 255, 0.2),
+                inset 0 0 20px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            overflow: hidden;
         }
         canvas {
-            border: 1px solid #fff;
+            display: block;
+            border: 2px solid #4a90d9;
+            border-radius: 4px;
+            image-rendering: pixelated;  /* 保持像素风格 */
+        }
+        #game-title {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00ffff;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 
+                0 0 10px #00ffff,
+                0 0 20px #00ffff,
+                0 0 40px #0088ff;
+            letter-spacing: 4px;
         }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <canvas id="gameCanvas" width="832" height="832"></canvas>
+        <div id="game-title">BATTLE CITY</div>
+        <canvas id="gameCanvas"></canvas>
     </div>
     <script type="module" src="/src/main.ts"></script>
 </body>
