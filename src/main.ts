@@ -1,10 +1,17 @@
 // Battle City main entry point
 console.log('Battle City game initializing...');
 
+// 游戏配置 - 高清化设置
+const GAME_TILE_SIZE = 80;  // 高清化：瓦片尺寸 64 -> 80
+const GAME_MAP_WIDTH = 13;
+const GAME_MAP_HEIGHT = 13;
+const GAME_WIDTH = GAME_TILE_SIZE * GAME_MAP_WIDTH;
+const GAME_HEIGHT = GAME_TILE_SIZE * GAME_MAP_HEIGHT;
+
 // Canvas setup
 const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-canvas.width = 832;
-canvas.height = 832;
+canvas.width = GAME_WIDTH;
+canvas.height = GAME_HEIGHT;
 
 // Import all game modules
 import { GameLoop } from './core/GameLoop';
@@ -12,7 +19,7 @@ import { InputManager } from './core/InputManager';
 import { Renderer } from './core/Renderer';
 import { MapSystem, TileType } from './game/systems/MapSystem';
 import { PlayerTank } from './game/entities/PlayerTank';
-import { Screens, GameState } from './ui/Screens';
+import { Screens, GameState, GameMode } from './ui/Screens';
 import { Direction } from './game/entities/Tank';
 import { Bullet, BulletDirection } from './game/entities/Bullet';
 import { BulletPool } from './game/entities/BulletPool';
@@ -52,10 +59,18 @@ void playerCanPassWater;
 
 // Game state - start in Menu mode
 let gameState: GameState = GameState.Menu;
+let gameMode: GameMode = GameMode.Single;  // 游戏模式：单人/双人
 let playerTank: PlayerTank | null = null;
-// TODO: 双人模式需要恢复
-// let player2Tank: PlayerTank | null = null;
+let player2Tank: PlayerTank | null = null;  // 双人模式玩家2
 let bullets: Bullet[] = [];
+
+// 双人模式输入控制变量
+let player2LastShotTime: number = 0;
+let player2WasMoving: boolean = false;
+
+// 模式选择相关 (预留)
+// let selectedMode: number = 0;  // 0=单人，1=双人
+// let modeKeyReleased: boolean = true;
 (window as any).bullets = bullets;
 let enemies: EnemyTank[] = [];
 let bulletPool: BulletPool;
@@ -87,7 +102,17 @@ const EXPLOSION_DURATION = 500; // 毫秒
 // Initialize player tank
 function initPlayerTank() {
     playerTank = new PlayerTank(mapSystem);
-    playerTank = new PlayerTank(mapSystem);
+    playerTank.x = 4 * 64;
+    playerTank.y = 12 * 64;
+}
+
+// Initialize player 2 tank (for two-player mode)
+function initPlayer2Tank() {
+    player2Tank = new PlayerTank(mapSystem);
+    player2Tank.x = 8 * 64;  // Different spawn position on the right side
+    player2Tank.y = 12 * 64;
+    player2Tank.health = 3;
+    player2Tank.bulletLevel = 1;
 }
 
 // Reset level
@@ -113,6 +138,16 @@ function resetLevel() {
     if (playerTank) {
         playerTank.x = 4 * 64;
         playerTank.y = 12 * 64;
+    }
+    
+    // Reset player 2 tank
+    if (gameMode === GameMode.TwoPlayer && player2Tank) {
+        player2Tank.x = 8 * 64;
+        player2Tank.y = 12 * 64;
+        player2Tank.health = 3;
+        player2Tank.bulletLevel = 1;
+        player2Tank.canPassWater = false;
+        player2Tank.bulletColorType = '';
     }
 }
 
@@ -224,11 +259,25 @@ function update(deltaTime: number) {
     
     // Level select handling
     if (gameState === GameState.Menu) {
+        // 模式选择: 1键单人，2键双人
+        if (inputManager.isPressed('Digit1') || inputManager.isPressed('Numpad1')) {
+            gameMode = GameMode.Single;
+        }
+        if (inputManager.isPressed('Digit2') || inputManager.isPressed('Numpad2')) {
+            gameMode = GameMode.TwoPlayer;
+        }
+        
         if (inputManager.isPressed('Enter') && enterKeyReleased) {
             currentLevel = 1;
             loadLevel(currentLevel);
             resetLevel();
             initPlayerTank();
+            
+            // 如果是双人模式，初始化玩家2
+            if (gameMode === GameMode.TwoPlayer) {
+                initPlayer2Tank();
+            }
+            
             gameState = GameState.Playing;
             enterKeyReleased = false;
         }
@@ -367,6 +416,76 @@ function update(deltaTime: number) {
                                 case Direction.Left: playerTank.x += distance; break;
                                 case Direction.Right: playerTank.x -= distance; break;
                             }
+                        }
+                    }
+                }
+            }
+            
+            // 双人模式：玩家2控制
+            if (gameMode === GameMode.TwoPlayer && player2Tank) {
+                let p2Moving = false;
+                // 玩家2: 方向键移动
+                if (inputManager.isPressed('KeyNumpad8') || inputManager.isPressed('KeyI')) {
+                    player2Tank.move(Direction.Up);
+                    p2Moving = true;
+                }
+                if (inputManager.isPressed('KeyNumpad2') || inputManager.isPressed('KeyK')) {
+                    player2Tank.move(Direction.Down);
+                    p2Moving = true;
+                }
+                if (inputManager.isPressed('KeyNumpad4') || inputManager.isPressed('KeyJ')) {
+                    player2Tank.move(Direction.Left);
+                    p2Moving = true;
+                }
+                if (inputManager.isPressed('KeyNumpad6') || inputManager.isPressed('KeyL')) {
+                    player2Tank.move(Direction.Right);
+                    p2Moving = true;
+                }
+                
+                if (p2Moving) {
+                    player2Tank.update(deltaTime);
+                }
+                
+                if (player2WasMoving && !p2Moving && player2Tank) {
+                    player2Tank.snapToGridWhenStopped();
+                }
+                player2WasMoving = p2Moving;
+                
+                // 玩家2射击: Enter键
+                const now2 = Date.now();
+                const p2Cooldown = player2Tank.bulletLevel >= 3 ? 500 : player2Tank.bulletLevel >= 2 ? 700 : 900;
+                if (inputManager.isPressed('Enter') && now2 - player2LastShotTime > p2Cooldown) {
+                    player2LastShotTime = now2;
+                    if (!bulletPool) {
+                        bulletPool = BulletPool.getInstance();
+                    }
+                    const bullet2 = bulletPool.acquire();
+                    if (bullet2 && player2Tank) {
+                        bullet2.init(
+                            player2Tank.x + 24,
+                            player2Tank.y + 24,
+                            player2Tank.direction as unknown as BulletDirection,
+                            now2,
+                            player2Tank.bulletLevel,
+                            player2Tank.bulletColorType
+                        );
+                        bullets.push(bullet2);
+                        soundManager.playShoot();
+                    }
+                }
+                
+                // 玩家2与敌人碰撞
+                for (const enemy of enemies) {
+                    if (player2Tank.x < enemy.x + enemy.width &&
+                        player2Tank.x + player2Tank.width > enemy.x &&
+                        player2Tank.y < enemy.y + enemy.height &&
+                        player2Tank.y + player2Tank.height > enemy.y) {
+                        const distance = player2Tank.speed * deltaTime;
+                        switch (player2Tank.direction) {
+                            case Direction.Up: player2Tank.y += distance; break;
+                            case Direction.Down: player2Tank.y -= distance; break;
+                            case Direction.Left: player2Tank.x += distance; break;
+                            case Direction.Right: player2Tank.x -= distance; break;
                         }
                     }
                 }
@@ -703,6 +822,14 @@ function render() {
                                playerTank.direction === 2 ? 'left' : 'right';
                     renderer.drawTank(playerTank.x, playerTank.y, playerTank.width, dir, 'blue');
                 }
+            }
+            
+            // 双人模式：渲染玩家2
+            if (gameMode === GameMode.TwoPlayer && player2Tank) {
+                const dir2 = player2Tank.direction === 0 ? 'up' : 
+                           player2Tank.direction === 1 ? 'down' : 
+                           player2Tank.direction === 2 ? 'left' : 'right';
+                renderer.drawTank(player2Tank.x, player2Tank.y, player2Tank.width, dir2, 'green');  // 玩家2用绿色
             }
             
             // Render bullets
