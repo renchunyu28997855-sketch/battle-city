@@ -903,7 +903,8 @@ function render() {
             
             // Draw HUD - Remaining enemies
             const maxEnemiesHUD = (window as any).MAX_ENEMIES_PER_LEVEL || MAX_ENEMIES_PER_LEVEL;
-            const remainingEnemies = Math.max(0, maxEnemiesHUD - enemiesSpawned);
+            // 剩余敌人 = 总数 - 已生成的 + 场上还活着的
+            const remainingEnemies = Math.max(0, maxEnemiesHUD - enemiesSpawned + enemies.length);
             renderer.drawText(`敌人: ${remainingEnemies}`, 750, 60, 'white', 20);
             
             // Draw power-ups
