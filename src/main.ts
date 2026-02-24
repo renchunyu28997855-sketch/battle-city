@@ -76,7 +76,6 @@ let enemies: EnemyTank[] = [];
 let bulletPool: BulletPool;
 let enemySpawnTimer: number = 0;
 let lastShotTime: number = 0;
-let enemiesSpawned: number = 0;
 const MAX_ENEMIES_PER_LEVEL: number = 20;
 const MAX_ON_SCREEN_ENEMIES: number = 4;
 let currentLevel: number = 1;
@@ -98,6 +97,9 @@ interface Explosion {
 }
 let explosions: Explosion[] = [];
 const EXPLOSION_DURATION = 500; // 毫秒
+
+// 敌人无敌时间
+let enemiesSpawned = 0;
 
 // Initialize player tank
 function initPlayerTank() {
@@ -272,6 +274,14 @@ function update(deltaTime: number) {
             loadLevel(currentLevel);
             resetLevel();
             initPlayerTank();
+            
+            // 模式选择: 1键单人，2键双人
+            if (inputManager.isPressed('Digit1') || inputManager.isPressed('Numpad1')) {
+                gameMode = GameMode.Single;
+            }
+            if (inputManager.isPressed('Digit2') || inputManager.isPressed('Numpad2')) {
+                gameMode = GameMode.TwoPlayer;
+            }
             
             // 如果是双人模式，初始化玩家2
             if (gameMode === GameMode.TwoPlayer) {
