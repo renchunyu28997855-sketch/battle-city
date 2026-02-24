@@ -507,8 +507,10 @@ function update(deltaTime: number) {
             const spawnInterval = (window as any).ENEMY_SPAWN_INTERVAL || 3;
             enemySpawnTimer += deltaTime;
             
-            // 只有达到生成间隔并且敌人数量未满时才生成
-            if (enemySpawnTimer >= spawnInterval && enemiesSpawned < maxEnemiesSpawn && enemies.length < maxOnScreen) {
+            // 只有达到生成间隔并且敌人未生成完时才生成
+            // 同时确保不是所有敌人都已生成并被杀光（避免最后一波敌人被杀后立即刷新）
+            const allEnemiesSpawnedAndKilled = enemiesSpawned >= maxEnemiesSpawn && enemies.length === 0;
+            if (!allEnemiesSpawnedAndKilled && enemySpawnTimer >= spawnInterval && enemiesSpawned < maxEnemiesSpawn && enemies.length < maxOnScreen) {
                 const enemyTypes = [ArmoredCar, LightTank, AntiTankGun, HeavyTank, NormalTank];
                 const EnemyClass = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
                 const newEnemy = new EnemyClass(0, 0, mapSystem);

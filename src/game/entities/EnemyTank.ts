@@ -121,13 +121,17 @@ export class EnemyTank extends Tank {
         const bullet = bulletPool.acquire();
         if (!bullet) return;
         
-        bullet.x = this.x + 24;
-        bullet.y = this.y + 24;
-        bullet.direction = this.convertDirection(this.direction);
-        bullet.active = true;
-        bullet.isEnemyBullet = true;
-        bullet.powerLevel = this.bulletLevel;
-        bullet.isSteel = this.bulletLevel >= 3;
+        // 使用统一的init方法来正确初始化所有子弹属性（包括speedVector）
+        const now = Date.now();
+        bullet.init(
+            this.x + 24,
+            this.y + 24,
+            this.convertDirection(this.direction),
+            now,
+            this.bulletLevel,
+            ''
+        );
+        bullet.isEnemyBullet = true;  // 标记为敌人子弹
         
         (window as any).bullets.push(bullet);
         
@@ -135,13 +139,16 @@ export class EnemyTank extends Tank {
         if (this.bulletLevel >= 2) {
             const bullet2 = bulletPool.acquire();
             if (bullet2) {
-                bullet2.x = this.x + 24;
-                bullet2.y = this.y + 24;
-                bullet2.direction = this.convertDirection(this.direction);
-                bullet2.active = true;
-                bullet2.isEnemyBullet = true;
-                bullet2.powerLevel = this.bulletLevel;
-                bullet2.isSteel = this.bulletLevel >= 3;
+                // 使用统一的init方法来正确初始化所有子弹属性
+                bullet2.init(
+                    this.x + 24,
+                    this.y + 24,
+                    this.convertDirection(this.direction),
+                    now,
+                    this.bulletLevel,
+                    ''
+                );
+                bullet2.isEnemyBullet = true;  // 标记为敌人子弹
                 (window as any).bullets.push(bullet2);
             }
         }

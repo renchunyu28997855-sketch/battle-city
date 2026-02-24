@@ -200,36 +200,19 @@ export class CollisionSystem {
             break;
             
           case TileType.Steel:
-            // 检测碰撞面
-            const steelPixelX = tileX * this.TILE_SIZE;
-            const steelPixelY = tileY * this.TILE_SIZE;
-            const steelFace = this.detectCollisionFace(
-              bullet.previousX, bullet.previousY,
-              bullet.x, bullet.y,
-              bullet.width, bullet.height,
-              steelPixelX, steelPixelY,
-              this.TILE_SIZE, this.TILE_SIZE
-            );
-
+            // 普通子弹打钢铁上只能停止，不能反弹也不能穿透
+            // 三级子弹可以打钢铁
             if (bullet.isSteel) {
               this.mapSystem.setTile(tileX, tileY, TileType.Empty);
               steelDestroyed++;
-              // 三级子弹一次打1块钢铁，打完后继续穿透
               if (steelDestroyed >= 1) {
                 bullet.active = false;
                 return;
               }
             } else {
-              // 普通子弹打钢铁上反弹或停止
-              if (bullet.canStillBounce() && steelFace !== CollisionFace.None) {
-                if (!firstBrickCollision) {
-                  firstBrickCollision = { face: steelFace, tileX, tileY };
-                }
-              } else {
-                bullet.active = false;
-                this.soundManager.playMetalHit();
-                return;
-              }
+              bullet.active = false;
+              this.soundManager.playMetalHit();
+              return;
             }
             break;
             
@@ -261,8 +244,33 @@ export class CollisionSystem {
       bullet.setReflection(reflectedVector);
       
       // 销毁碰撞的砖块
-      const { tileX, tileY } = firstBrickCollision;
+      const { tileX, tileY, face } = firstBrickCollision;
       this.mapSystem.setTile(tileX, tileY, TileType.Empty);
+      
+      // 将子弹移出碰撞区域，避免连续碰撞
+      const tilePixelX = tileX * this.TILE_SIZE;
+      const tilePixelY = tileY * this.TILE_SIZE;
+      const pushDistance = 2; // 推出一点距离
+      
+      switch (face) {
+        case CollisionFace.Top:
+          bullet.y = tilePixelY - bullet.height - pushDistance;
+          break;
+        case CollisionFace.Bottom:
+          bullet.y = tilePixelY + this.TILE_SIZE + pushDistance;
+          break;
+        case CollisionFace.Left:
+          bullet.x = tilePixelX - bullet.width - pushDistance;
+          break;
+        case CollisionFace.Right:
+          bullet.x = tilePixelX + this.TILE_SIZE + pushDistance;
+          break;
+      }
+      
+      // 更新上一帧位置，避免立即再次碰撞
+      bullet.previousX = bullet.x;
+      bullet.previousY = bullet.y;
+      
       console.log(`[Bounce] Bullet bounced off brick at (${tileX}, ${tileY})`);
     }
   }
